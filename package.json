@@ -1,0 +1,95 @@
+{
+  "name": "event-manager-cli",
+  "description": "CLI for event manager components.",
+  "version": "0.0.0",
+  "author": "Gevorg Margaryan<gevorgmargaryan@yahoo.com> (https://www.dasmeta.com/)",
+  "bin": {
+    "emc": "./bin/run"
+  },
+  "bugs": "https://github.com/dasmeta/event-manager-cli/issues",
+  "dependencies": {
+    "@oclif/core": "^1.1.2",
+    "@oclif/plugin-autocomplete": "^1.1.1",
+    "@oclif/plugin-help": "^5",
+    "@oclif/plugin-plugins": "^2.0.1",
+    "@tutorbot/microservice": "^2.7.15",
+    "chalk": "^4.1.2",
+    "fs-extra": "^10.0.0",
+    "lodash": "^4.17.21",
+    "semver": "^7.3.5"
+  },
+  "devDependencies": {
+    "@oclif/test": "^2",
+    "@types/chai": "^4",
+    "@types/fs-extra": "^9.0.13",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.9.4",
+    "@types/semver": "^7.3.9",
+    "chai": "^4",
+    "eslint": "^7.32.0",
+    "eslint-config-oclif": "^4",
+    "eslint-config-oclif-typescript": "^1.0.2",
+    "globby": "^11",
+    "mocha": "^9",
+    "oclif": "^2",
+    "shx": "^0.3.3",
+    "ts-node": "^10.2.1",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.3"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "files": [
+    "/bin",
+    "/dist",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
+  "homepage": "https://github.com/dasmeta/event-manager-cli",
+  "keywords": [
+    "oclif"
+  ],
+  "license": "MIT",
+  "main": "dist/index.js",
+  "oclif": {
+    "bin": "emc",
+    "dirname": "emc",
+    "commands": "./dist/commands",
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-plugins",
+      "@oclif/plugin-autocomplete"
+    ],
+    "topicSeparator": " ",
+    "topics": {
+      "config": {
+        "description": "Add/Remove/Sync user configuration."
+      },
+      "function": {
+        "description": "Everything related functions management."
+      },
+      "function:package": {
+        "description": "Everything related to function packages management."
+      },
+      "dev": {
+        "description": "Everything related to working on local environment."
+      },
+      "dev:run": {
+        "description": "Everything related to running resources in local environment."
+      }
+    }
+  },
+  "repository": "https://github.com/dasmeta/event-manager-cli",
+  "scripts": {
+    "build": "shx rm -rf dist && tsc -b",
+    "build-watch": "shx rm -rf dist && tsc -b -w",
+    "lint": "eslint . --ext .ts --config .eslintrc --fix",
+    "postpack": "shx rm -f oclif.manifest.json",
+    "posttest": "yarn lint",
+    "prepack": "yarn build && oclif manifest && oclif readme",
+    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif readme && git add README.md"
+  },
+  "types": "dist/index.d.ts"
+}
