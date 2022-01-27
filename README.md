@@ -16,76 +16,266 @@ oclif example Hello World CLI
 # Usage
 <!-- usage -->
 ```sh-session
-$ npm install -g oclif-hello-world
-$ oex COMMAND
+$ npm install -g @dasmeta/event-manager-cli
+$ emc COMMAND
 running command...
-$ oex (--version)
-oclif-hello-world/0.0.0 darwin-x64 node-v16.13.1
-$ oex --help [COMMAND]
+$ emc (--version)
+@dasmeta/event-manager-cli/1.0.0 linux-x64 node-v12.22.5
+$ emc --help [COMMAND]
 USAGE
-  $ oex COMMAND
+  $ emc COMMAND
 ...
 ```
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`oex hello PERSON`](#oex-hello-person)
-* [`oex hello world`](#oex-hello-world)
-* [`oex help [COMMAND]`](#oex-help-command)
-* [`oex plugins`](#oex-plugins)
-* [`oex plugins:inspect PLUGIN...`](#oex-pluginsinspect-plugin)
-* [`oex plugins:install PLUGIN...`](#oex-pluginsinstall-plugin)
-* [`oex plugins:link PLUGIN`](#oex-pluginslink-plugin)
-* [`oex plugins:uninstall PLUGIN...`](#oex-pluginsuninstall-plugin)
-* [`oex plugins update`](#oex-plugins-update)
+* [`emc autocomplete [SHELL]`](#emc-autocomplete-shell)
+* [`emc config init`](#emc-config-init)
+* [`emc dev run function`](#emc-dev-run-function)
+* [`emc dev run topic`](#emc-dev-run-topic)
+* [`emc dev start`](#emc-dev-start)
+* [`emc function create`](#emc-function-create)
+* [`emc function package generate NAME`](#emc-function-package-generate-name)
+* [`emc function sync-dependencies`](#emc-function-sync-dependencies)
+* [`emc function sync-version`](#emc-function-sync-version)
+* [`emc function validate`](#emc-function-validate)
+* [`emc help [COMMAND]`](#emc-help-command)
+* [`emc platform generate-deploy NAME`](#emc-platform-generate-deploy-name)
+* [`emc plugins`](#emc-plugins)
+* [`emc plugins:inspect PLUGIN...`](#emc-pluginsinspect-plugin)
+* [`emc plugins:install PLUGIN...`](#emc-pluginsinstall-plugin)
+* [`emc plugins:link PLUGIN`](#emc-pluginslink-plugin)
+* [`emc plugins:uninstall PLUGIN...`](#emc-pluginsuninstall-plugin)
+* [`emc plugins update`](#emc-plugins-update)
 
-## `oex hello PERSON`
+## `emc autocomplete [SHELL]`
 
-Say hello
+display autocomplete installation instructions
 
 ```
 USAGE
-  $ oex hello [PERSON] -f <value>
+  $ emc autocomplete [SHELL] [-r]
 
 ARGUMENTS
-  PERSON  Person to say hello to
+  SHELL  shell type
 
 FLAGS
-  -f, --from=<value>  (required) Whom is saying hello
+  -r, --refresh-cache  Refresh cache (ignores displaying instructions)
 
 DESCRIPTION
-  Say hello
+  display autocomplete installation instructions
 
 EXAMPLES
-  $ oex hello friend --from oclif
-  hello friend from oclif! (./src/commands/hello/index.ts)
+  $ emc autocomplete
+
+  $ emc autocomplete bash
+
+  $ emc autocomplete zsh
+
+  $ emc autocomplete --refresh-cache
 ```
 
-_See code: [dist/commands/hello/index.ts](https://github.com/oclif/hello-world/blob/v0.0.0/dist/commands/hello/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.1.1/src/commands/autocomplete/index.ts)_
 
-## `oex hello world`
+## `emc config init`
 
-Say hello world
+Initializes configurations.
 
 ```
 USAGE
-  $ oex hello world
+  $ emc config init [-f]
+
+FLAGS
+  -f, --force  restore all default configs
 
 DESCRIPTION
-  Say hello world
+  Initializes configurations.
 
 EXAMPLES
-  $ oex hello world
-  hello world! (./src/commands/hello/world.ts)
+  $ emc config init
 ```
 
-## `oex help [COMMAND]`
+## `emc dev run function`
 
-Display help for oex.
+Run function in local environment
 
 ```
 USAGE
-  $ oex help [COMMAND] [-n]
+  $ emc dev run function --project-dir <value> --project-name <value> --function-namespace <value> --function-name
+    <value> --test-data-file <value> [--env-file <value>]
+
+FLAGS
+  --env-file=<value>            Environment variables file with JSON format
+  --function-name=<value>       (required) Function name
+  --function-namespace=<value>  (required) Function namespace
+  --project-dir=<value>         (required) Project root directory
+  --project-name=<value>        (required) Sub project directory
+  --test-data-file=<value>      (required) Test data file
+
+DESCRIPTION
+  Run function in local environment
+
+EXAMPLES
+  $ emc dev run function
+```
+
+## `emc dev run topic`
+
+Run topic in local environment
+
+```
+USAGE
+  $ emc dev run topic --project-dir <value> --project-name <value> --test-data-file <value> -t <value> [--env-file
+    <value>]
+
+FLAGS
+  -t, --topic=<value>       (required) Topic to run
+  --env-file=<value>        Environment variables file with JSON format
+  --project-dir=<value>     (required) Project root directory
+  --project-name=<value>    (required) Sub project directory
+  --test-data-file=<value>  (required) Test data file
+
+DESCRIPTION
+  Run topic in local environment
+
+EXAMPLES
+  $ emc dev run topic
+```
+
+## `emc dev start`
+
+Starts consumers in local environment
+
+```
+USAGE
+  $ emc dev start --project-dir <value> --project-name <value> [-t <value>] [-T <value>] [-s <value>] [-S
+    <value>] [--default-max-attempt <value>] [--env-file <value>] [--force]
+
+FLAGS
+  -S, --excluded-subscription=<value>...  [default: ] Subscription to exclude consuming
+  -T, --excluded-topic=<value>...         [default: ] Topics to exclude consuming
+  -s, --subscription=<value>...           [default: ] Subscription to consume
+  -t, --topic=<value>...                  [default: ] Topics to consume
+  --default-max-attempt=<value>           [default: 3] Default function execution attempts count
+  --env-file=<value>                      Environment variables file with JSON format
+  --force                                 Ignore issues and run anyway
+  --project-dir=<value>                   (required) Project root directory
+  --project-name=<value>                  (required) Sub project directory
+
+DESCRIPTION
+  Starts consumers in local environment
+
+EXAMPLES
+  $ emc dev start
+```
+
+## `emc function create`
+
+Create Function blueprint
+
+```
+USAGE
+  $ emc function create --project-dir <value> --project-name <value> --namespace <value> --name <value>
+
+FLAGS
+  --name=<value>          (required) Function name
+  --namespace=<value>     (required) Function namespace
+  --project-dir=<value>   (required) Project root directory
+  --project-name=<value>  (required) Sub project directory
+
+DESCRIPTION
+  Create Function blueprint
+
+EXAMPLES
+  $ emc function create
+```
+
+## `emc function package generate NAME`
+
+Create Function project
+
+```
+USAGE
+  $ emc function package generate [NAME] [--project-dir <value>] [--functions-dir <value>]
+
+ARGUMENTS
+  NAME  Project name
+
+FLAGS
+  --functions-dir=<value>  [default: functions] Functions root directory
+  --project-dir=<value>    [default: /home/gmargaryan/Development/event-manager-cli] Project root directory
+
+DESCRIPTION
+  Create Function project
+
+EXAMPLES
+  $ emc function package generate
+```
+
+## `emc function sync-dependencies`
+
+Syncs all detected functions dependencies to match to project one.
+
+```
+USAGE
+  $ emc function sync-dependencies --project-dir <value> --project-name <value>
+
+FLAGS
+  --project-dir=<value>   (required) Project root directory
+  --project-name=<value>  (required) Sub project directory
+
+DESCRIPTION
+  Syncs all detected functions dependencies to match to project one.
+
+EXAMPLES
+  $ emc function sync-dependencies
+```
+
+## `emc function sync-version`
+
+Syncs all detected changed functions versions.
+
+```
+USAGE
+  $ emc function sync-version --project-dir <value> --project-name <value>
+
+FLAGS
+  --project-dir=<value>   (required) Project root directory
+  --project-name=<value>  (required) Sub project directory
+
+DESCRIPTION
+  Syncs all detected changed functions versions.
+
+EXAMPLES
+  $ emc function sync-version
+```
+
+## `emc function validate`
+
+Validates functions in the project
+
+```
+USAGE
+  $ emc function validate --project-dir <value> --project-name <value>
+
+FLAGS
+  --project-dir=<value>   (required) Project root directory
+  --project-name=<value>  (required) Sub project directory
+
+DESCRIPTION
+  Validates functions in the project
+
+EXAMPLES
+  $ emc function validate
+```
+
+## `emc help [COMMAND]`
+
+Display help for emc.
+
+```
+USAGE
+  $ emc help [COMMAND] [-n]
 
 ARGUMENTS
   COMMAND  Command to show help for.
@@ -94,18 +284,39 @@ FLAGS
   -n, --nested-commands  Include all nested commands in the output.
 
 DESCRIPTION
-  Display help for oex.
+  Display help for emc.
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.10/src/commands/help.ts)_
 
-## `oex plugins`
+## `emc platform generate-deploy NAME`
+
+Create platform
+
+```
+USAGE
+  $ emc platform generate-deploy [NAME] [--format <value>]
+
+ARGUMENTS
+  NAME  Platform name
+
+FLAGS
+  --format=<value>  Platform data format
+
+DESCRIPTION
+  Create platform
+
+EXAMPLES
+  $ emc platform generate-deploy
+```
+
+## `emc plugins`
 
 List installed plugins.
 
 ```
 USAGE
-  $ oex plugins [--core]
+  $ emc plugins [--core]
 
 FLAGS
   --core  Show core plugins.
@@ -114,18 +325,18 @@ DESCRIPTION
   List installed plugins.
 
 EXAMPLES
-  $ oex plugins
+  $ emc plugins
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.0.11/src/commands/plugins/index.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.0.12/src/commands/plugins/index.ts)_
 
-## `oex plugins:inspect PLUGIN...`
+## `emc plugins:inspect PLUGIN...`
 
 Displays installation properties of a plugin.
 
 ```
 USAGE
-  $ oex plugins:inspect PLUGIN...
+  $ emc plugins:inspect PLUGIN...
 
 ARGUMENTS
   PLUGIN  [default: .] Plugin to inspect.
@@ -138,16 +349,16 @@ DESCRIPTION
   Displays installation properties of a plugin.
 
 EXAMPLES
-  $ oex plugins:inspect myplugin
+  $ emc plugins:inspect myplugin
 ```
 
-## `oex plugins:install PLUGIN...`
+## `emc plugins:install PLUGIN...`
 
 Installs a plugin into the CLI.
 
 ```
 USAGE
-  $ oex plugins:install PLUGIN...
+  $ emc plugins:install PLUGIN...
 
 ARGUMENTS
   PLUGIN  Plugin to install.
@@ -169,23 +380,23 @@ DESCRIPTION
   the CLI without the need to patch and update the whole CLI.
 
 ALIASES
-  $ oex plugins add
+  $ emc plugins add
 
 EXAMPLES
-  $ oex plugins:install myplugin 
+  $ emc plugins:install myplugin 
 
-  $ oex plugins:install https://github.com/someuser/someplugin
+  $ emc plugins:install https://github.com/someuser/someplugin
 
-  $ oex plugins:install someuser/someplugin
+  $ emc plugins:install someuser/someplugin
 ```
 
-## `oex plugins:link PLUGIN`
+## `emc plugins:link PLUGIN`
 
 Links a plugin into the CLI for development.
 
 ```
 USAGE
-  $ oex plugins:link PLUGIN
+  $ emc plugins:link PLUGIN
 
 ARGUMENTS
   PATH  [default: .] path to plugin
@@ -203,16 +414,16 @@ DESCRIPTION
   command will override the user-installed or core plugin implementation. This is useful for development work.
 
 EXAMPLES
-  $ oex plugins:link myplugin
+  $ emc plugins:link myplugin
 ```
 
-## `oex plugins:uninstall PLUGIN...`
+## `emc plugins:uninstall PLUGIN...`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ oex plugins:uninstall PLUGIN...
+  $ emc plugins:uninstall PLUGIN...
 
 ARGUMENTS
   PLUGIN  plugin to uninstall
@@ -225,17 +436,17 @@ DESCRIPTION
   Removes a plugin from the CLI.
 
 ALIASES
-  $ oex plugins unlink
-  $ oex plugins remove
+  $ emc plugins unlink
+  $ emc plugins remove
 ```
 
-## `oex plugins update`
+## `emc plugins update`
 
 Update installed plugins.
 
 ```
 USAGE
-  $ oex plugins update [-h] [-v]
+  $ emc plugins update [-h] [-v]
 
 FLAGS
   -h, --help     Show CLI help.

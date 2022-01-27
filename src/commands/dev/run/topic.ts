@@ -11,8 +11,8 @@ export default class Topic extends Command {
   ]
 
   static flags = {
-    'project-dir': Flags.string({description: 'Project root directory', required: true}),
-    'project-name': Flags.string({description: 'Sub project directory', required: true}),
+    'project-dir': Flags.string({description: 'Project root directory', required: false, default: process.cwd()}),
+    'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
     'test-data-file': Flags.string({description: 'Test data file', required: true}),
     topic: Flags.string({char: 't', description: 'Topic to run', required: true}),
     'env-file': Flags.string({description: 'Environment variables file with JSON format'}),
