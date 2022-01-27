@@ -1,6 +1,7 @@
 import {Command, Flags} from '@oclif/core'
 import * as fse from 'fs-extra'
 import * as path from 'path'
+import * as chalk from "chalk";
 
 const configFiles = [
   'config.json',
@@ -20,28 +21,28 @@ export default class Init extends Command {
   public async run(): Promise<void> {
     const {args, flags} = await this.parse(Init)
 
-    console.log(this.config.configDir)
+    this.error(chalk.red('Command is not implemented'))
 
-    for (const configFile of configFiles) {
-      await fse.ensureFile(path.join(this.config.configDir, configFile))
-    }
-
-    const defaultConfigs = {}
-    let userConfig
-    const configFilePath = path.join(this.config.configDir, 'config.json')
-    try {
-      userConfig = await fse.readJSON(configFilePath)
-    } catch (error) {
-      if (error instanceof SyntaxError) {
-        userConfig = defaultConfigs
-      }
-    } finally {
-      if (flags.force) {
-        userConfig = defaultConfigs
-      }
-
-      await fse.writeJSON(configFilePath, userConfig)
-      this.log('<%= config.bin %> configuration initialization completed.')
-    }
+    // for (const configFile of configFiles) {
+    //   await fse.ensureFile(path.join(this.config.configDir, configFile))
+    // }
+    //
+    // const defaultConfigs = {}
+    // let userConfig
+    // const configFilePath = path.join(this.config.configDir, 'config.json')
+    // try {
+    //   userConfig = await fse.readJSON(configFilePath)
+    // } catch (error) {
+    //   if (error instanceof SyntaxError) {
+    //     userConfig = defaultConfigs
+    //   }
+    // } finally {
+    //   if (flags.force) {
+    //     userConfig = defaultConfigs
+    //   }
+    //
+    //   await fse.writeJSON(configFilePath, userConfig)
+    //   this.log('<%= config.bin %> configuration initialization completed.')
+    // }
   }
 }

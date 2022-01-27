@@ -1,8 +1,8 @@
 import {Command, Flags} from '@oclif/core'
-import * as fs from 'node:fs'
+import * as fs from 'fs'
 import * as path from 'path'
 import * as fse from 'fs-extra'
-import {execSync as exec} from 'node:child_process'
+import {execSync as exec} from 'child_process'
 import {getProjectPaths} from '../../utility/commandsHelper'
 import {jsonWriteOptions} from '../../config'
 
