@@ -2,6 +2,16 @@ interface GcfConfig {
 
 }
 
+interface GcfLabel {
+  version: string
+}
+export interface GcfFunctionItem {
+  name: string
+  labels: GcfLabel
+}
+
+export type GcfFunctionList = Array<GcfFunctionItem>
+
 export interface FunctionItem {
   gcf: GcfConfig
   functionName: string
@@ -11,6 +21,12 @@ export interface FunctionItem {
   absolutePath: string
   topic: string
   maxAttempts: number
+  version: string
+  memory: string
+  'max-instances': number
+  bucket: string
+  event: string
+  resource: string
 }
 
 export type FunctionList = Array<FunctionItem>

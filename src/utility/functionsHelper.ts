@@ -33,8 +33,8 @@ export const getFunctions = (functionsPath:string): FunctionList => {
   return functions
 }
 
-export const updateProcessEnv = (enfFilePath:string|undefined):void => {
-  if (enfFilePath) {
-    process.env = {...process.env, ...require(enfFilePath)}
+export const updateProcessEnv = (envFilePath:string|undefined):void => {
+  if (envFilePath) {
+    process.env = {...process.env, ...require(envFilePath)}
   }
 }
