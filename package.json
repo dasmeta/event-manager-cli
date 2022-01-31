@@ -1,7 +1,7 @@
 {
   "name": "@dasmeta/event-manager-cli",
   "description": "CLI for event manager components.",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "author": "Gevorg Margaryan<gevorgmargaryan@yahoo.com> (https://www.dasmeta.com/)",
   "bin": {
     "emc": "./bin/run"
@@ -89,7 +89,8 @@
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
-    "version": "oclif readme && git add README.md"
+    "version": "oclif readme && git add README.md",
+    "oclif": "oclif"
   },
   "types": "dist/index.d.ts"
 }
