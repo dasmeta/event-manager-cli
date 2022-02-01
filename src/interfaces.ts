@@ -42,3 +42,13 @@ export interface ProjectMetadata {
   dependencies: any,
   functionsConfig: ProjectFunctionConfig
 }
+
+export interface FissionEnvironmentVariable {
+  name: string
+  value: string
+}
+
+export interface FissionContainerEnvironment {
+  name: string
+  env: Array<FissionEnvironmentVariable>
+}
