@@ -541,14 +541,13 @@
   resolved "https://registry.yarnpkg.com/@oclif/linewrap/-/linewrap-1.0.0.tgz#aedcb64b479d4db7be24196384897b5000901d91"
   integrity sha512-Ups2dShK52xXa8w6iBWLgcjPJWjais6KPJQq3gQ/88AY6BXoTX+MIGFPrWQO1KLMiQfoTpcLnUwloN4brrVUHw==
 
-"@oclif/plugin-autocomplete@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-1.1.1.tgz#f6c343d81569fc986d38e4950799ccf3e2b677e1"
-  integrity sha512-pbhW8MlgdiF7hNxYVW+d43BwSMtb2WSwuw5hyMFdO15U3J4FDRLynG5sdcz0k1GSBr5tOgZHJ+Dh813amckSAw==
+"@oclif/plugin-autocomplete@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-1.2.0.tgz#c807d4ee0fd745296ea745c0c8ca28a0c6233bf3"
+  integrity sha512-Y64uhbhQLcLms2N6kvoIb40s2czOECeMzGs0ATf/3kNojY2nsYaQ0mI6PghQs/JgpVg4DnZOJivleYBr+XPn7Q==
   dependencies:
-    "@oclif/core" "^1.0.11"
+    "@oclif/core" "^1.2.0"
     chalk "^4.1.0"
-    cli-ux "^6.0.6"
     debug "^4.0.0"
     fs-extra "^9.0.1"
 

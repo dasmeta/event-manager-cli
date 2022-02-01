@@ -9,7 +9,7 @@
   "bugs": "https://github.com/dasmeta/event-manager-cli/issues",
   "dependencies": {
     "@oclif/core": "^1.2.1",
-    "@oclif/plugin-autocomplete": "^1.1.1",
+    "@oclif/plugin-autocomplete": "^1.2.0",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.1.0",
     "@tutorbot/microservice": "^2.7.15",
