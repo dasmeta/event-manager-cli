@@ -55,10 +55,8 @@ export default class Create extends Command {
 
     // run.js
     const packageRunPath = path.join(functionPath, 'run.js')
-    const packageRunContent = `exports.subscribe = require("@tutorbot/gcf-helper")(require("./handler"));
+    const packageRunContent ='exports.subscribe = require("@dasmeta/event-manager-platform-helper").wrapHandler(require("./handler"), process.env.DEPLOYER_PLATFORM)';
 
-exports.fissionHttpHandler = require("@tutorbot/fission-helper")(require("./handler"));
-`
     await fse.writeFile(packageRunPath, packageRunContent)
 
     // handler.js

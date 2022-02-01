@@ -8,7 +8,7 @@ export const getProjectPaths = (projectPath: string, projectName: string): Proje
 
   let functionsConfig: ProjectFunctionConfig; let dependencies: any
   try {
-    ({dependencies, functionsConfig = {dir: defaultFunctionsDir}} = require(path.join(absoluteBasePath, 'package')))
+    ({dependencies, functionsConfig} = require(path.join(absoluteBasePath, 'package')))
   } catch {
     throw new Error(chalk.red(`"${absoluteBasePath}" is not a valid function project`))
   }

@@ -18,6 +18,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "semver": "^7.3.5",
+    "uuid": "^8.3.2",
     "yaml": "^1.10.2"
   },
   "devDependencies": {
@@ -27,6 +28,7 @@
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.9.4",
     "@types/semver": "^7.3.9",
+    "@types/uuid": "^8.3.4",
     "chai": "^4",
     "eslint": "^7.32.0",
     "eslint-config-oclif": "^4",

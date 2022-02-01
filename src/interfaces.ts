@@ -34,6 +34,7 @@ export type FunctionList = Array<FunctionItem>
 //  "functionsConfig" key in package.json of the project
 export interface ProjectFunctionConfig {
   dir: string
+  uid: string
 }
 
 export interface ProjectMetadata {

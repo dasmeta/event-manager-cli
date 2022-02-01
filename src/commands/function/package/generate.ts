@@ -2,6 +2,7 @@ import {Command, Flags} from '@oclif/core'
 import * as fse from 'fs-extra'
 import * as path from 'path'
 import * as chalk from 'chalk'
+import { v4 as uuid } from 'uuid'
 import {defaultFunctionsDir, jsonWriteOptions} from '../../../config'
 
 export default class Generate extends Command {
@@ -64,6 +65,7 @@ node_modules/
 # DEPLOY
 deploy.sh
 list.json
+specs
 
 .DS_Store`
     await fse.writeFile(getProjectChildPath('.gitignore'), gitignore)
@@ -78,7 +80,8 @@ list.json
         'dev:check': 'emc function validate --project-dir=$(pwd)',
         'dev:upgrade': 'emc function sync-dependencies --project-dir=$(pwd)',
         'dev:version': 'emc function sync-version --project-dir=$(pwd)',
-        'gen:deploy': 'emc platform generate-deploy --project-dir=$(pwd) --is-GCF --functions-list-file=$(pwd)/list.json',
+        'gen:deploy-gcf': 'emc platform generate-deploy --project-dir=$(pwd) --is-GCF --functions-list-file=$(pwd)/list.json',
+        'gen:deploy-fission': 'emc platform generate-deploy --project-dir=$(pwd) --is-fission',
         prettier: "prettier --write '**/*.js'",
         test: "NODE_ENV=test yarn nyc mocha './functions/**/*test.js'",
         postinstall: "echo '#!/bin/sh\\\\n\\\\nyarn dev:upgrade && yarn dev:version\\\\n\\\\nx=$?\\\\nexit $x\\\\n' > .git/hooks/pre-commit && chmod 0755 .git/hooks/pre-commit",
@@ -86,13 +89,12 @@ list.json
         'run-topic': 'emc help dev run topic --project-dir=$(pwd) --env-file=$(pwd)/src/env.json --test-data-file=$(pwd)/src/test-data.json',
       },
       dependencies: {
-        '@dasmeta/event-manager-platform-helper': '^1.0.0',
+        '@dasmeta/event-manager-platform-helper': '^1.0.1',
         '@tutorbot/api-client': '^2.0.94',
         '@tutorbot/course-finder-api-client': '^1.1.2',
       },
       devDependencies: {
         '@google-cloud/storage': '^2.5.0',
-        '@tutorbot/microservice': '^2.7.11',
         'dotenv-yaml': '^0.1.4',
         eslint: '^5.16.0',
         'eslint-config-airbnb-base': '^13.1.0',
@@ -128,6 +130,7 @@ list.json
       },
       functionsConfig: {
         dir: flags['functions-dir'],
+        deploymentUid: uuid()
       },
     }
     await fse.writeJSON(getProjectChildPath('package.json'), packageJson, jsonWriteOptions)

@@ -29,20 +29,32 @@ export default class GenerateDeploy extends Command {
     'is-GCF': Flags.boolean({description: 'Use GCF instructions', required: false, exactlyOne: ['is-GCF', 'is-fission'], dependsOn: ['functions-list-file']}),
     'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission'], dependsOn: ['kafka-bootstrap-server']}),
     'functions-list-file': Flags.string({description: 'GCF deployed functions list'}),
-    'kafka-bootstrap-server': Flags.string({description: 'Kafka server for Fission MQT'})
+    'kafka-bootstrap-server': Flags.string({description: 'Kafka server for Fission MQT'}),
+    'topic': Flags.string({description: 'Topics to deploy functions for', char: 't', multiple: true, default: []})
   }
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(GenerateDeploy)
 
-    const { absoluteFunctionsPath, absoluteBasePath } = getProjectPaths(flags['project-dir'], flags['project-name'])
+    const { absoluteFunctionsPath, absoluteBasePath, functionsConfig } = getProjectPaths(flags['project-dir'], flags['project-name'])
+
+    const getFilteredFunctions = () => {
+      const functions = getFunctions(absoluteFunctionsPath)
+      if (0 === flags.topic.length) {
+        return functions
+      }
+
+      return functions.filter((item) => {
+        return item.topic && flags.topic.includes(item.topic)
+      })
+    }
 
     if (flags["is-GCF"]) {
       let content = "#!bin/bash\n\n"
 
       const data = getGcfState(flags["functions-list-file"]!)
 
-      getFunctions(absoluteFunctionsPath).forEach(item => {
+      getFilteredFunctions().forEach(item => {
         item.version = item.version.replace(/[.]/gi, "-")
 
         // @ts-ignore
@@ -67,22 +79,16 @@ export default class GenerateDeploy extends Command {
 
       const projectName:string = absoluteBasePath.split('/').pop()!
 
-      generateFissionDeploymentSpec(path.join(specDir, `deployment-${projectName}.yaml`), projectName)
+      generateFissionDeploymentSpec(path.join(specDir, `deployment-${projectName}.yaml`), projectName, functionsConfig.uid)
       generateFissionEnvironmentSpec(path.join(specDir, 'env-nodejs-12.yaml'), path.join(absoluteBasePath, 'env.yml'))
 
-      //todo remove
-      let i = 0;
-      getFunctions(absoluteFunctionsPath).forEach((item) => {
+      getFilteredFunctions().forEach((item) => {
         const excludedFunctions = [
           "vocabulary_handle-image-resize"
         ];
         if (excludedFunctions.includes(item.functionName)) {
           return;
         }
-
-        // @todo remove limit
-        i++
-        if (i > 5) { return }
 
         const functionName = item.functionName;
         const normFunctionName = getFissionNormFunctionName(functionName);
