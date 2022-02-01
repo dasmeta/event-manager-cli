@@ -20,7 +20,7 @@ $ npm install -g @dasmeta/event-manager-cli
 $ emc COMMAND
 running command...
 $ emc (--version)
-@dasmeta/event-manager-cli/1.0.1 linux-x64 node-v12.22.5
+@dasmeta/event-manager-cli/1.0.3 linux-x64 node-v12.22.5
 $ emc --help [COMMAND]
 USAGE
   $ emc COMMAND
@@ -292,22 +292,24 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.1
 
 ## `emc platform generate-deploy`
 
-Create platform
+Generates deployment files.
 
 ```
 USAGE
   $ emc platform generate-deploy [--project-dir <value>] [--project-name <value>] [--is-GCF --functions-list-file <value>]
-    [--is-fission]
+    [--is-fission --kafka-bootstrap-server <value>] [-t <value>]
 
 FLAGS
-  --functions-list-file=<value>  GCF deployed functions list
-  --is-GCF                       Use GCF instructions
-  --is-fission                   Use fission instructions
-  --project-dir=<value>          [default: /home/gmargaryan/Development/event-manager-cli] Project root directory
-  --project-name=<value>         Sub project directory
+  -t, --topic=<value>...            [default: ] Topics to deploy functions for
+  --functions-list-file=<value>     GCF deployed functions list
+  --is-GCF                          Use GCF instructions
+  --is-fission                      Use fission instructions
+  --kafka-bootstrap-server=<value>  Kafka server for Fission MQT
+  --project-dir=<value>             [default: /home/gmargaryan/Development/event-manager-cli] Project root directory
+  --project-name=<value>            Sub project directory
 
 DESCRIPTION
-  Create platform
+  Generates deployment files.
 
 EXAMPLES
   $ emc platform generate-deploy
