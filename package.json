@@ -1,18 +1,18 @@
 {
   "name": "@dasmeta/event-manager-cli",
   "description": "CLI for event manager components.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "Gevorg Margaryan<gevorgmargaryan@yahoo.com> (https://www.dasmeta.com/)",
   "bin": {
     "emc": "./bin/run"
   },
   "bugs": "https://github.com/dasmeta/event-manager-cli/issues",
   "dependencies": {
+    "@dasmeta/event-manager-node-api": "^1.0.5",
     "@oclif/core": "^1.2.1",
     "@oclif/plugin-autocomplete": "^1.2.0",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.1.0",
-    "@tutorbot/microservice": "^2.7.15",
     "chalk": "^4.1.2",
     "fs-extra": "^10.0.0",
     "lodash": "^4.17.21",
