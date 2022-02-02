@@ -20,7 +20,7 @@ $ npm install -g @dasmeta/event-manager-cli
 $ emc COMMAND
 running command...
 $ emc (--version)
-@dasmeta/event-manager-cli/1.0.3 linux-x64 node-v12.22.5
+@dasmeta/event-manager-cli/1.0.5 linux-x64 node-v12.22.5
 $ emc --help [COMMAND]
 USAGE
   $ emc COMMAND
@@ -34,6 +34,7 @@ USAGE
 * [`emc dev run function`](#emc-dev-run-function)
 * [`emc dev run topic`](#emc-dev-run-topic)
 * [`emc dev start`](#emc-dev-start)
+* [`emc dev trigger-event`](#emc-dev-trigger-event)
 * [`emc function create`](#emc-function-create)
 * [`emc function package generate NAME`](#emc-function-package-generate-name)
 * [`emc function sync-dependencies`](#emc-function-sync-dependencies)
@@ -75,7 +76,7 @@ EXAMPLES
   $ emc autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.1.1/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.2.0/src/commands/autocomplete/index.ts)_
 
 ## `emc config init`
 
@@ -101,14 +102,14 @@ Run function in local environment
 
 ```
 USAGE
-  $ emc dev run function --function-namespace <value> --function-name <value> --test-data-file <value> [--project-dir
-    <value>] [--project-name <value>] [--env-file <value>]
+  $ emc dev run function --project-dir <value> --function-namespace <value> --function-name <value> --test-data-file
+    <value> [--project-name <value>] [--env-file <value>]
 
 FLAGS
   --env-file=<value>            Environment variables file with JSON format
   --function-name=<value>       (required) Function name
   --function-namespace=<value>  (required) Function namespace
-  --project-dir=<value>         [default: /home/gmargaryan/Development/event-manager-cli] Project root directory
+  --project-dir=<value>         (required) Project root directory
   --project-name=<value>        Sub project directory
   --test-data-file=<value>      (required) Test data file
 
@@ -125,13 +126,13 @@ Run topic in local environment
 
 ```
 USAGE
-  $ emc dev run topic --test-data-file <value> -t <value> [--project-dir <value>] [--project-name <value>]
+  $ emc dev run topic --project-dir <value> --test-data-file <value> -t <value> [--project-name <value>]
     [--env-file <value>]
 
 FLAGS
   -t, --topic=<value>       (required) Topic to run
   --env-file=<value>        Environment variables file with JSON format
-  --project-dir=<value>     [default: /home/gmargaryan/Development/event-manager-cli] Project root directory
+  --project-dir=<value>     (required) Project root directory
   --project-name=<value>    Sub project directory
   --test-data-file=<value>  (required) Test data file
 
@@ -148,7 +149,7 @@ Starts consumers in local environment
 
 ```
 USAGE
-  $ emc dev start [--project-dir <value>] [--project-name <value>] [-t <value>] [-T <value>] [-s <value>] [-S
+  $ emc dev start --project-dir <value> [--project-name <value>] [-t <value>] [-T <value>] [-s <value>] [-S
     <value>] [--default-max-attempt <value>] [--env-file <value>] [--force]
 
 FLAGS
@@ -159,8 +160,7 @@ FLAGS
   --default-max-attempt=<value>           [default: 3] Default function execution attempts count
   --env-file=<value>                      Environment variables file with JSON format
   --force                                 Ignore issues and run anyway
-  --project-dir=<value>                   [default: /home/gmargaryan/Development/event-manager-cli] Project root
-                                          directory
+  --project-dir=<value>                   (required) Project root directory
   --project-name=<value>                  Sub project directory
 
 DESCRIPTION
@@ -170,18 +170,39 @@ EXAMPLES
   $ emc dev start
 ```
 
+## `emc dev trigger-event`
+
+Publishes Event.
+
+```
+USAGE
+  $ emc dev trigger-event --kafka-bootstrap-server <value> -t <value> -e <value> [--debug]
+
+FLAGS
+  -e, --event=<value>               (required) Topic body
+  -t, --topic=<value>               (required) Topic to run
+  --debug                           Activate debug mode.
+  --kafka-bootstrap-server=<value>  (required) Kafka server for Fission MQT
+
+DESCRIPTION
+  Publishes Event.
+
+EXAMPLES
+  $ emc dev trigger-event
+```
+
 ## `emc function create`
 
 Create Function blueprint
 
 ```
 USAGE
-  $ emc function create --namespace <value> --name <value> [--project-dir <value>] [--project-name <value>]
+  $ emc function create --project-dir <value> --namespace <value> --name <value> [--project-name <value>]
 
 FLAGS
   --name=<value>          (required) Function name
   --namespace=<value>     (required) Function namespace
-  --project-dir=<value>   [default: /home/gmargaryan/Development/event-manager-cli] Project root directory
+  --project-dir=<value>   (required) Project root directory
   --project-name=<value>  Sub project directory
 
 DESCRIPTION
@@ -197,14 +218,14 @@ Create Function project
 
 ```
 USAGE
-  $ emc function package generate [NAME] [--project-dir <value>] [--functions-dir <value>]
+  $ emc function package generate [NAME] --project-dir <value> [--functions-dir <value>]
 
 ARGUMENTS
   NAME  Project name
 
 FLAGS
   --functions-dir=<value>  [default: functions] Functions root directory
-  --project-dir=<value>    [default: /home/gmargaryan/Development/event-manager-cli] Project root directory
+  --project-dir=<value>    (required) Project root directory
 
 DESCRIPTION
   Create Function project
@@ -219,10 +240,10 @@ Syncs all detected functions dependencies to match to project one.
 
 ```
 USAGE
-  $ emc function sync-dependencies [--project-dir <value>] [--project-name <value>]
+  $ emc function sync-dependencies --project-dir <value> [--project-name <value>]
 
 FLAGS
-  --project-dir=<value>   [default: /home/gmargaryan/Development/event-manager-cli] Project root directory
+  --project-dir=<value>   (required) Project root directory
   --project-name=<value>  Sub project directory
 
 DESCRIPTION
@@ -238,10 +259,10 @@ Syncs all detected changed functions versions.
 
 ```
 USAGE
-  $ emc function sync-version [--project-dir <value>] [--project-name <value>]
+  $ emc function sync-version --project-dir <value> [--project-name <value>]
 
 FLAGS
-  --project-dir=<value>   [default: /home/gmargaryan/Development/event-manager-cli] Project root directory
+  --project-dir=<value>   (required) Project root directory
   --project-name=<value>  Sub project directory
 
 DESCRIPTION
@@ -257,10 +278,10 @@ Validates functions in the project
 
 ```
 USAGE
-  $ emc function validate [--project-dir <value>] [--project-name <value>]
+  $ emc function validate --project-dir <value> [--project-name <value>]
 
 FLAGS
-  --project-dir=<value>   [default: /home/gmargaryan/Development/event-manager-cli] Project root directory
+  --project-dir=<value>   (required) Project root directory
   --project-name=<value>  Sub project directory
 
 DESCRIPTION
@@ -288,7 +309,7 @@ DESCRIPTION
   Display help for emc.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.10/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.11/src/commands/help.ts)_
 
 ## `emc platform generate-deploy`
 
@@ -296,16 +317,17 @@ Generates deployment files.
 
 ```
 USAGE
-  $ emc platform generate-deploy [--project-dir <value>] [--project-name <value>] [--is-GCF --functions-list-file <value>]
-    [--is-fission --kafka-bootstrap-server <value>] [-t <value>]
+  $ emc platform generate-deploy --project-dir <value> --env-file <value> [--project-name <value>] [--is-GCF
+    --functions-list-file <value>] [--is-fission --kafka-bootstrap-server <value>] [-t <value>]
 
 FLAGS
   -t, --topic=<value>...            [default: ] Topics to deploy functions for
+  --env-file=<value>                (required) Deployment environment file
   --functions-list-file=<value>     GCF deployed functions list
   --is-GCF                          Use GCF instructions
   --is-fission                      Use fission instructions
   --kafka-bootstrap-server=<value>  Kafka server for Fission MQT
-  --project-dir=<value>             [default: /home/gmargaryan/Development/event-manager-cli] Project root directory
+  --project-dir=<value>             (required) Project root directory
   --project-name=<value>            Sub project directory
 
 DESCRIPTION
@@ -333,7 +355,7 @@ EXAMPLES
   $ emc plugins
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.0.12/src/commands/plugins/index.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/index.ts)_
 
 ## `emc plugins:inspect PLUGIN...`
 
