@@ -143,10 +143,7 @@ spec:
 
   const nodeContainer:FissionContainerEnvironment = {
     name: envName,
-    env: [{
-      name: 'DEPLOYER_PLATFORM',
-      value: 'fission'
-    }]
+    env: []
   }
 
   const keyValue:Array<Array<string>> = Object.entries(

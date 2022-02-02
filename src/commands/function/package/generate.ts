@@ -70,28 +70,27 @@ specs
 .DS_Store`
     await fse.writeFile(getProjectChildPath('.gitignore'), gitignore)
 
+    const uid = uuid()
     const packageJson = {
       name: args.name,
       version: '0.0.0',
       license: 'MIT',
       scripts: {
-        function: 'emc function create --project-dir=$(pwd)',
-        dev: "PUBSUB_EMULATOR_HOST='localhost:8085' PUBSUB_PROJECT_ID='my-project-id' GCLOUD_PROJECT='my-project-id' emc dev start --project-dir=$(pwd)",
-        'dev:check': 'emc function validate --project-dir=$(pwd)',
-        'dev:upgrade': 'emc function sync-dependencies --project-dir=$(pwd)',
-        'dev:version': 'emc function sync-version --project-dir=$(pwd)',
-        'gen:deploy-gcf': 'emc platform generate-deploy --project-dir=$(pwd) --is-GCF --functions-list-file=$(pwd)/list.json --env-file=env.yaml',
-        'gen:deploy-fission': 'emc platform generate-deploy --project-dir=$(pwd) --is-fission --env-file=env.yaml',
-        prettier: "prettier --write '**/*.js'",
-        test: "NODE_ENV=test yarn nyc mocha './functions/**/*test.js'",
-        postinstall: "echo '#!/bin/sh\\\\n\\\\nyarn dev:upgrade && yarn dev:version\\\\n\\\\nx=$?\\\\nexit $x\\\\n' > .git/hooks/pre-commit && chmod 0755 .git/hooks/pre-commit",
-        'run-function': 'emc help dev run function --project-dir=$(pwd) --env-file=$(pwd)/src/env.json --test-data-file=$(pwd)/src/test-data.json',
-        'run-topic': 'emc help dev run topic --project-dir=$(pwd) --env-file=$(pwd)/src/env.json --test-data-file=$(pwd)/src/test-data.json',
+        'function:create': 'emc function create --project-dir=$(pwd)',
+        'function:validate': 'emc function validate --project-dir=$(pwd)',
+        'function:sync-dependencies': 'emc function sync-dependencies --project-dir=$(pwd)',
+        'function:sync-version': 'emc function sync-version --project-dir=$(pwd)',
+        'platform:deploy-gcf': 'emc platform generate-deploy --project-dir=$(pwd) --is-GCF --functions-list-file=$(pwd)/list.json --env-file=env.yaml',
+        'platform:deploy-fission': 'emc platform generate-deploy --project-dir=$(pwd) --is-fission --env-file=env.yaml',
+        'prettier': "prettier --write '**/*.js'",
+        'test': "NODE_ENV=test yarn nyc mocha './functions/**/*test.js'",
+        'postinstall': "echo '#!/bin/sh\\\\n\\\\nyarn function:sync-dependencies && yarn function:sync-version\\\\n\\\\nx=$?\\\\nexit $x\\\\n' > .git/hooks/pre-commit && chmod 0755 .git/hooks/pre-commit",
+        'dev:start': "PUBSUB_EMULATOR_HOST='localhost:8085' PUBSUB_PROJECT_ID='my-project-id' GCLOUD_PROJECT='my-project-id' emc dev start --project-dir=$(pwd)",
+        'dev:run-function': 'emc help dev run function --project-dir=$(pwd) --env-file=$(pwd)/env.json --test-data-file=$(pwd)/test-data.json',
+        'dev:run-topic': 'emc help dev run topic --project-dir=$(pwd) --env-file=$(pwd)/env.json --test-data-file=$(pwd)/test-data.json',
       },
       dependencies: {
-        '@dasmeta/event-manager-platform-helper': '^1.0.1',
-        '@tutorbot/api-client': '^2.0.94',
-        '@tutorbot/course-finder-api-client': '^1.1.2',
+        '@dasmeta/event-manager-platform-helper': '^1.0.1'
       },
       devDependencies: {
         '@google-cloud/storage': '^2.5.0',
@@ -130,7 +129,7 @@ specs
       },
       functionsConfig: {
         dir: flags['functions-dir'],
-        deploymentUid: uuid()
+        deploymentUid: uid
       },
     }
     await fse.writeJSON(getProjectChildPath('package.json'), packageJson, jsonWriteOptions)
@@ -143,9 +142,39 @@ specs
         key: 'value',
       },
     }
-    await fse.writeJSON(getProjectChildPath('test-data.json'), packageJson, jsonWriteOptions)
-
+    await fse.writeJSON(getProjectChildPath('test-data.json'), testData, jsonWriteOptions)
     await fse.writeFile(getProjectChildPath('env.yaml'), 'DEPLOYER_PLATFORM: "fission"\n')
+    const localEnv = {
+      DEPLOYER_PLATFORM: 'fission'
+    }
+    await fse.writeJSON(getProjectChildPath('env.json'), localEnv)
+
+    const readme = `## ${args.name}
+Package is generated via [emc function package generate](https://github.com/dasmeta/event-manager-cli#emc-function-package-generate-name) command.
+
+Form more details about available commands visit [event-manager-cli (emc)](https://github.com/dasmeta/event-manager-cli#commands)
+
+### Configs
+Default configs for package are stored in \`package.json\` during generation.
+
+In case of manually editing make sure all cases are replaced.
+\`\`\`json
+  "functionsConfig": {
+    "dir": "${flags['functions-dir']}",
+    "deploymentUid": "${uid}"
+  }
+\`\`\`
+- \`functionsConfig.dir\` is the folder where functions will be generated for the current project.
+- \`functionsConfig.deploymentUid\` is the uid to be used by fission to identify resources.
+
+\`"dependencies"\` in \`package.josn\` is used to clone global project dependencies to new created functions and later sync in all functions.
+
+### Generated Files
+- \`env.json\` local environment json file
+- \`env.yaml\` multi environment yaml file used for deployment
+- \`test-data.json\` contains test data for testing functions`
+    await fse.writeFile(getProjectChildPath('README.md'), readme)
+
     this.log(chalk.green(`Successfully created Project at ${getProjectChildPath('')}`))
   }
 }
