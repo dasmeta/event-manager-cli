@@ -17,7 +17,7 @@ export default class SyncDependencies extends Command {
   ]
 
   static flags = {
-    'project-dir': Flags.string({description: 'Project root directory', required: false, default: process.cwd()}),
+    'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
   }
 

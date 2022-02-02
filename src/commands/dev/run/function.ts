@@ -12,7 +12,7 @@ export default class Topic extends Command {
   ]
 
   static flags = {
-    'project-dir': Flags.string({description: 'Project root directory', required: false, default: process.cwd()}),
+    'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
     'function-namespace': Flags.string({description: 'Function namespace', required: true}),
     'function-name': Flags.string({description: 'Function name', required: true}),

@@ -27,7 +27,7 @@ export const getGcfState = (stateFilePath:string) => {
   return data
 }
 
-export const getGcfFunctionDeploymentScript = (item: FunctionItem) => {
+export const getGcfFunctionDeploymentScript = (item: FunctionItem, envFile:string = 'env.yaml') => {
   let content = ''
   content += `\ngcloud beta functions deploy "${item.functionName}" \\`
   content += `\n  --region="europe-west1" \\`
@@ -52,7 +52,7 @@ export const getGcfFunctionDeploymentScript = (item: FunctionItem) => {
   }
 
   content += `\n  --update-labels="type=event,version=${item.version}" \\`
-  content += `\n  --env-vars-file="env.yml" &\n`
+  content += `\n  --env-vars-file="${envFile}" &\n`
 
   return content
 }

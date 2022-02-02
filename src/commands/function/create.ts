@@ -13,7 +13,7 @@ export default class Create extends Command {
   ]
 
   static flags = {
-    'project-dir': Flags.string({description: 'Project root directory', required: false, default: process.cwd()}),
+    'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
     namespace: Flags.string({description: 'Function namespace', required: true}),
     name: Flags.string({description: 'Function name', required: true}),

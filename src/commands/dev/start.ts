@@ -12,7 +12,7 @@ export default class Start extends Command {
   ]
 
   static flags = {
-    'project-dir': Flags.string({description: 'Project root directory', required: false, default: process.cwd()}),
+    'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
     topic: Flags.string({char: 't', description: 'Topics to consume', multiple: true, default: []}),
     'excluded-topic': Flags.string({char: 'T', description: 'Topics to exclude consuming', multiple: true, default: []}),

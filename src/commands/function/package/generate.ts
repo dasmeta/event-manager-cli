@@ -13,7 +13,7 @@ export default class Generate extends Command {
   ]
 
   static flags = {
-    'project-dir': Flags.string({description: 'Project root directory', required: false, default: process.cwd()}),
+    'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'functions-dir': Flags.string({description: 'Functions root directory', required: false, default: defaultFunctionsDir}),
   }
 
@@ -80,8 +80,8 @@ specs
         'dev:check': 'emc function validate --project-dir=$(pwd)',
         'dev:upgrade': 'emc function sync-dependencies --project-dir=$(pwd)',
         'dev:version': 'emc function sync-version --project-dir=$(pwd)',
-        'gen:deploy-gcf': 'emc platform generate-deploy --project-dir=$(pwd) --is-GCF --functions-list-file=$(pwd)/list.json',
-        'gen:deploy-fission': 'emc platform generate-deploy --project-dir=$(pwd) --is-fission',
+        'gen:deploy-gcf': 'emc platform generate-deploy --project-dir=$(pwd) --is-GCF --functions-list-file=$(pwd)/list.json --env-file=env.yaml',
+        'gen:deploy-fission': 'emc platform generate-deploy --project-dir=$(pwd) --is-fission --env-file=env.yaml',
         prettier: "prettier --write '**/*.js'",
         test: "NODE_ENV=test yarn nyc mocha './functions/**/*test.js'",
         postinstall: "echo '#!/bin/sh\\\\n\\\\nyarn dev:upgrade && yarn dev:version\\\\n\\\\nx=$?\\\\nexit $x\\\\n' > .git/hooks/pre-commit && chmod 0755 .git/hooks/pre-commit",
@@ -144,6 +144,8 @@ specs
       },
     }
     await fse.writeJSON(getProjectChildPath('test-data.json'), packageJson, jsonWriteOptions)
+
+    await fse.writeFile(getProjectChildPath('env.yaml'), 'DEPLOYER_PLATFORM: "fission"\n')
     this.log(chalk.green(`Successfully created Project at ${getProjectChildPath('')}`))
   }
 }

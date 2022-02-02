@@ -24,13 +24,14 @@ export default class GenerateDeploy extends Command {
   ]
 
   static flags = {
-    'project-dir': Flags.string({description: 'Project root directory', required: false, default: process.cwd()}),
+    'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
     'is-GCF': Flags.boolean({description: 'Use GCF instructions', required: false, exactlyOne: ['is-GCF', 'is-fission'], dependsOn: ['functions-list-file']}),
     'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission'], dependsOn: ['kafka-bootstrap-server']}),
     'functions-list-file': Flags.string({description: 'GCF deployed functions list'}),
     'kafka-bootstrap-server': Flags.string({description: 'Kafka server for Fission MQT'}),
-    'topic': Flags.string({description: 'Topics to deploy functions for', char: 't', multiple: true, default: []})
+    'topic': Flags.string({description: 'Topics to deploy functions for', char: 't', multiple: true, default: []}),
+    'env-file': Flags.string({description: 'Deployment environment file', required: true}),
   }
 
   async run(): Promise<void> {
@@ -62,7 +63,7 @@ export default class GenerateDeploy extends Command {
           return
         }
 
-        content += getGcfFunctionDeploymentScript(item)
+        content += getGcfFunctionDeploymentScript(item, flags['env-file'])
       })
       content += `\nwait\n`
 
@@ -80,7 +81,10 @@ export default class GenerateDeploy extends Command {
       const projectName:string = absoluteBasePath.split('/').pop()!
 
       generateFissionDeploymentSpec(path.join(specDir, `deployment-${projectName}.yaml`), projectName, functionsConfig.uid)
-      generateFissionEnvironmentSpec(path.join(specDir, 'env-nodejs-12.yaml'), path.join(absoluteBasePath, 'env.yml'))
+      generateFissionEnvironmentSpec(
+        path.join(specDir, 'env-nodejs-12.yaml'),
+        path.join(absoluteBasePath, flags['env-file'])
+      )
 
       getFilteredFunctions().forEach((item) => {
         const excludedFunctions = [
