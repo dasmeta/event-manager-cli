@@ -237,7 +237,7 @@ spec:
   messageQueueType: kafka
   metadata:
     bootstrapServers: ${bootstrapServers}
-    consumerGroup: functions
+    consumerGroup: ${triggerName}
     topic: ${topic}
   minReplicaCount: 0
   mqtkind: keda
