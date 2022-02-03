@@ -1,8 +1,9 @@
 import {Command, Flags} from '@oclif/core'
-import * as chalk from 'chalk'
 import * as path from 'path'
 import {getFunctions, updateProcessEnv} from '../../utility/functionsHelper'
 import {getProjectPaths} from '../../utility/commandsHelper'
+//@ts-ignore
+const {registerSubscriber} = require('@dasmeta/event-manager-node-api')
 
 export default class Start extends Command {
   static description = 'Starts consumers in local environment'
@@ -25,22 +26,6 @@ export default class Start extends Command {
 
   public async run(): Promise<void> {
     const {flags} = await this.parse(Start)
-
-    // requires @tutorbot/microservice upgrade and ts types declaration
-    if (!flags.force) {
-      this.error(chalk.red('Command is not implemented.'))
-    }
-
-    // dummy subscriber
-    // @todo import function from @dasmeta/event-manager-node-api former @tutorbot/microservice
-    const registerSubscriber = (
-      topic: string,
-      functionName: string,
-      handler: Function,
-      maxAttempt: number,
-    ) => {
-      console.log({topic, functionName, maxAttempt, handler})
-    }
 
     const {absoluteFunctionsPath} = getProjectPaths(flags['project-dir'], flags['project-name'])
 
