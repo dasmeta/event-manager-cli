@@ -61,10 +61,11 @@ export default class Create extends Command {
 
     // handler.js
     const packageHandlerPath = path.join(functionPath, 'handler.js')
-    const packageHandlerContent = `// const { someMethod } = require("@tutorbot/api-client/src/api/SomeApi");
+    const packageHandlerContent = `// const { someMethod } = require("api/SomeApi");
 
-module.exports = async data => {
-    console.log('handler input data', data)
+module.exports = async (data, meta) => {
+    console.log('handler data', data)
+    console.log('handler meta', meta)
     // const {  } = data;
 
     // do something
