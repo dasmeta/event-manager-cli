@@ -29,6 +29,12 @@ const validateName = (name:string) => {
     war.push("Function name's must be at most 63 characters long. You are in edge.")
   }
 
+  const fissionNameRegex =  /^[a-z0-9][a-z0-9\-]*[a-z0-9]$/g
+  if (!fissionNameRegex.test(name)) {
+    isValid = false
+    err.push('Name must consist of lower case alphanumeric characters or \'-\', and must start and end with an alphanumeric character')
+  }
+
   if (isValid) {
     if (war.length > 0) {
       console.log('\u001B[33m', '✓', name, '\u001B[0m')

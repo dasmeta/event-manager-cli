@@ -14,6 +14,7 @@ export type GcfFunctionList = Array<GcfFunctionItem>
 
 export interface FunctionItem {
   gcf: GcfConfig
+  // ${namespace}_${name}
   functionName: string
   // Relative path of a function {functions-dir}/{functions-group}/{function}
   path: string

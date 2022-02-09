@@ -20,7 +20,7 @@ $ npm install -g @dasmeta/event-manager-cli
 $ emc COMMAND
 running command...
 $ emc (--version)
-@dasmeta/event-manager-cli/1.0.5 linux-x64 node-v12.22.5
+@dasmeta/event-manager-cli/1.0.8 linux-x64 node-v12.22.5
 $ emc --help [COMMAND]
 USAGE
   $ emc COMMAND
@@ -36,6 +36,7 @@ USAGE
 * [`emc dev start`](#emc-dev-start)
 * [`emc dev trigger-event`](#emc-dev-trigger-event)
 * [`emc function create`](#emc-function-create)
+* [`emc function list-topics`](#emc-function-list-topics)
 * [`emc function package generate NAME`](#emc-function-package-generate-name)
 * [`emc function sync-dependencies`](#emc-function-sync-dependencies)
 * [`emc function sync-version`](#emc-function-sync-version)
@@ -210,6 +211,26 @@ DESCRIPTION
 
 EXAMPLES
   $ emc function create
+```
+
+## `emc function list-topics`
+
+Lists topics
+
+```
+USAGE
+  $ emc function list-topics --project-dir <value> [--project-name <value>] [--dump]
+
+FLAGS
+  --dump                  Dump as command option
+  --project-dir=<value>   (required) Project root directory
+  --project-name=<value>  Sub project directory
+
+DESCRIPTION
+  Lists topics
+
+EXAMPLES
+  $ emc function list-topics
 ```
 
 ## `emc function package generate NAME`

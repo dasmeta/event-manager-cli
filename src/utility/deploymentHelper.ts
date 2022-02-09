@@ -249,12 +249,5 @@ spec:
 }
 
 export const getFissionNormFunctionName = (fname:string) => {
-  const nameSchema = fname.split('_');
-  const abbs = {
-    "attendance-overtime": "att-ot",
-    "group": "gp",
-    "statistics": "stats"
-  };
-  // @ts-ignore
-  return (abbs[nameSchema[0]] || nameSchema[0]) + "--" + nameSchema[1]
+  return fname.replace('_', '0')
 }
