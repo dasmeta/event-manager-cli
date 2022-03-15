@@ -31,6 +31,7 @@ export default class GenerateDeploy extends Command {
     'functions-list-file': Flags.string({description: 'GCF deployed functions list'}),
     'kafka-bootstrap-server': Flags.string({description: 'Kafka server for Fission MQT'}),
     'topic': Flags.string({description: 'Topics to deploy functions for', char: 't', multiple: true, default: []}),
+    'subscription': Flags.string({description: 'Functions to deploy', char: 's', multiple: true, default: []}),
     'env-file': Flags.string({description: 'Deployment environment file', required: true}),
   }
 
@@ -40,14 +41,24 @@ export default class GenerateDeploy extends Command {
     const { absoluteFunctionsPath, absoluteBasePath, functionsConfig } = getProjectPaths(flags['project-dir'], flags['project-name'])
 
     const getFilteredFunctions = () => {
-      const functions = getFunctions(absoluteFunctionsPath)
-      if (0 === flags.topic.length) {
+      let functions = getFunctions(absoluteFunctionsPath)
+      if (0 === flags.topic.length && 0 === flags.subscription.length) {
         return functions
       }
 
-      return functions.filter((item) => {
-        return item.topic && flags.topic.includes(item.topic)
-      })
+      if(0 !== flags.topic.length) {
+        functions = functions.filter((item) => {
+          return item.topic && flags.topic.includes(item.topic)
+        })
+      }
+
+      if(0 !== flags.subscription.length) {
+        functions = functions.filter((item) => {
+          return item.functionName && flags.subscription.includes(item.functionName)
+        })
+      }
+
+      return functions;
     }
 
     if (flags["is-GCF"]) {
