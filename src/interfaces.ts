@@ -24,6 +24,7 @@ export interface FunctionItem {
   maxAttempts: number
   version: string
   memory: string
+  runtime: string
   'max-instances': number
   bucket: string
   event: string

@@ -34,7 +34,7 @@ export const getGcfFunctionDeploymentScript = (item: FunctionItem, envFile:strin
   content += `\n  --entry-point="subscribe" \\`
   content += `\n  --memory="${item.memory || "128MB"}" \\`
   content += `\n  --max-instances=${item["max-instances"] || "1"} \\`
-  content += `\n  --runtime="nodejs12" \\`
+  content += `\n  --runtime="${item.runtime || "nodejs12"}" \\`
   content += `\n  --source="${item.absolutePath}" \\`
   content += `\n  --timeout=60 \\`
 
