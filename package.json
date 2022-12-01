@@ -10,7 +10,7 @@
   "dependencies": {
     "@dasmeta/event-manager-node-api": "^1.0.6",
     "@oclif/core": "^1.2.1",
-    "@oclif/plugin-autocomplete": "^1.2.0",
+    "@oclif/plugin-autocomplete": "^1.3.6",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.1.0",
     "chalk": "^4.1.2",
