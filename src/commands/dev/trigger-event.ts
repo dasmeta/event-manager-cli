@@ -1,4 +1,5 @@
 import {Command, Flags} from '@oclif/core'
+import { EventApi } from '@dasmeta/event-manager-node-api'
 
 export default class TriggerEvent extends Command {
   static description = 'Publishes Event.'
@@ -24,9 +25,10 @@ export default class TriggerEvent extends Command {
     process.env.MQ_CLIENT_NAME='Kafka'
     process.env.KAFKA_BROKERS=flags["kafka-bootstrap-server"]
 
-    //@ts-ignore
-    const {nonPersistentPublish} = require('@dasmeta/event-manager-node-api')
-
-    await nonPersistentPublish(flags.topic, JSON.parse(flags.event))
+    const api = new EventApi({ basePath: process.env.EVENT_MANAGER_BACKEND_URL })
+    await api.eventsNonPersistentPublishPost({
+      topic: flags.topic,
+      data: JSON.parse(flags.event)
+    })
   }
 }

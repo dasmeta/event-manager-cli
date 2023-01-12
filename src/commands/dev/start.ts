@@ -2,8 +2,10 @@ import {Command, Flags} from '@oclif/core'
 import * as path from 'path'
 import {getFunctions, updateProcessEnv} from '../../utility/functionsHelper'
 import {getProjectPaths} from '../../utility/commandsHelper'
+import { EventSubscriptionApi } from '@dasmeta/event-manager-node-api'
 //@ts-ignore
-const {registerSubscriber} = require('@dasmeta/event-manager-node-api')
+const {queue} = require('@dasmeta/event-manager-utils')
+
 
 export default class Start extends Command {
   static description = 'Starts consumers in local environment'
@@ -49,11 +51,19 @@ export default class Start extends Command {
         handlerIndex = handler.handler
       }
 
-      registerSubscriber(
+      const api = new EventSubscriptionApi({ basePath: process.env.EVENT_MANAGER_BACKEND_URL })
+
+      queue.registerSubscriber(
         item.topic,
         item.functionName,
         handlerIndex,
         item.maxAttempts || flags['default-max-attempt'],
+        async (data: any) => api.eventSubscriptionsRecordStartPost(data), 
+        async (data: any) => api.eventSubscriptionsRecordSuccessPost(data), 
+        async (data: any) => api.eventSubscriptionsRecordFailurePost({...data, error: { stack: data.error.stack, message: data.error.message }}), 
+        async (data: any) => api.eventSubscriptionsRecordPreconditionFailurePost(data), 
+        async ({ topic, subscription, eventId, maxAttempts }: any) => 
+          (await api.eventSubscriptionsHasReachedMaxAttemptsGet(topic, subscription, eventId, maxAttempts)).data.result
       )
     }
   }
