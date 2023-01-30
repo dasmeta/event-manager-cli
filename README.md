@@ -347,7 +347,9 @@ FLAGS
   --functions-list-file=<value>     GCF deployed functions list
   --is-GCF                          Use GCF instructions
   --is-fission                      Use fission instructions
+  --is-serverless-aws               Use serverless aws instructions
   --kafka-bootstrap-server=<value>  Kafka server for Fission MQT
+  --aws-region                      AWS region
   --project-dir=<value>             (required) Project root directory
   --project-name=<value>            Sub project directory
 
