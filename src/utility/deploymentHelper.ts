@@ -308,7 +308,7 @@ export const generateServerlessFunctionSpecForAws = (
 
   const content = `em-${camelCase(functionItem.functionName)}:
   name: ${functionItem.functionName}
-  handler: run.subscribe
+  handler: ${functionItem.path}/run.subscribe
   events:
     - sns:
         arn: !Ref em${camelCase(functionItem.topic)}
