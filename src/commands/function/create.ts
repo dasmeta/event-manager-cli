@@ -53,12 +53,6 @@ export default class Create extends Command {
     }
     await fse.writeJSON(packageJsonPath, packageJsonContent, jsonWriteOptions)
 
-    // run.js
-    const packageRunPath = path.join(functionPath, 'run.js')
-    const packageRunContent ='exports.subscribe = require("@dasmeta/event-manager-platform-helper").wrapHandler(require("./handler"), process.env.DEPLOYER_PLATFORM)';
-
-    await fse.writeFile(packageRunPath, packageRunContent)
-
     // handler.js
     const packageHandlerPath = path.join(functionPath, 'handler.js')
     const packageHandlerContent = `// const { someMethod } = require("api/SomeApi");

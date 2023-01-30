@@ -1,7 +1,8 @@
-import { FissionContainerEnvironment, FissionEnvironmentVariable, FunctionItem, GcfFunctionList } from "../interfaces";
+import { FissionContainerEnvironment, FissionEnvironmentVariable, FunctionItem, FunctionList, GcfFunctionList } from "../interfaces";
 import * as fs from "fs"
 import * as moment from 'moment'
 import * as yaml from 'yaml'
+import {isEmpty, camelCase} from 'lodash'
 import {
   DEFAULT_ENV_NAME,
   DEFAULT_ENV_NAMESPACE,
@@ -250,4 +251,97 @@ spec:
 
 export const getFissionNormFunctionName = (fname:string) => {
   return fname.replace('_', '0')
+}
+
+export const generateServerlessSpecForAws = (
+  awsRegion: string,
+  envFilePath: string,
+  topicsSpecFilePath:string,
+  topics:Array<string>,
+  functionsSpecFilePath:string,
+  functions: FunctionList
+) => {
+  const content = `service: eventManager
+app: eventmanager
+provider:
+  name: aws
+  region: ${awsRegion}
+`
+  const spec = yaml.parse(content)
+
+  const keyValue:Array<Array<string>> = Object.entries(
+    yaml.parse(fs.readFileSync(envFilePath, 'utf8'))
+  )
+
+  const variables: {[key: string]: any} = {};
+  for (const [key, value] of keyValue) {
+    variables[`${yaml.parse(key)}`] = yaml.parse(value);
+  }
+
+  if(!isEmpty(variables)) {
+    spec.provider.environment = variables;
+  }
+
+  if(!isEmpty(topics)) {
+    spec.resources = [];
+  }
+  topics.forEach(name => {
+    spec.resources.push(`$\{file(./${topicsSpecFilePath}/${name}.yml)\}`)
+  })
+
+  if(!isEmpty(functions)) {
+    spec.functions = [];
+  }
+  functions.forEach(item => {
+    spec.functions.push(`$\{file(./${functionsSpecFilePath}/${item.functionName}.yml)\}`)
+  })
+
+  const specContent = yaml.stringify(spec, {})
+
+  fs.writeFileSync('serverless.yml', specContent)
+}
+
+export const generateServerlessFunctionSpecForAws = (
+  functionItem: FunctionItem,
+  specFilePath:string,
+) => {
+
+  const content = `em-${camelCase(functionItem.functionName)}:
+  name: ${functionItem.functionName}
+  handler: run.subscribe
+  events:
+    - sns:
+        arn: !Ref em${camelCase(functionItem.topic)}
+        topicName: ${camelCase(functionItem.topic)}
+  tags:
+    version: ${functionItem.version}
+  runtime: ${functionItem.runtime || 'nodejs14'}.x
+  memorySize: ${parseInt(functionItem.memory) || '128'}
+  timeout: 60
+  reservedConcurrency: ${functionItem["max-instances"] || '1'}
+  package:
+    individually: true
+    patterns:
+      - '!./**'
+      - './${functionItem.path}/**'
+      - '!./${functionItem.path}/yarn.lock'
+`
+  fs.writeFileSync(`${specFilePath}/${functionItem.functionName}.yml`, content)
+
+  const runContent = 'exports.subscribe = require("@dasmeta/event-manager-platform-helper").wrapHandler(require("./handler"), "aws")'
+  fs.writeFileSync(`./${functionItem.path}/run.js`, runContent)
+}
+
+export const generateServerlessSNSTopicSpecForAws = (
+  specFilePath:string,
+  topicName:string
+) => {
+  const topic = camelCase(topicName);
+  const content = `Resources:
+  em${topic}:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: ${topic}
+`
+  fs.writeFileSync(specFilePath, content)
 }
