@@ -67,6 +67,10 @@ deploy.sh
 list.json
 specs
 
+.serverless/
+serverless.yml
+run.js
+
 .DS_Store`
     await fse.writeFile(getProjectChildPath('.gitignore'), gitignore)
 
@@ -82,15 +86,13 @@ specs
         'function:sync-version': 'emc function sync-version --project-dir=$(pwd)',
         'platform:generate-gcf-deploy': 'emc platform generate-deploy --project-dir=$(pwd) --is-GCF --functions-list-file=$(pwd)/list.json --env-file=env.yaml',
         'platform:generate-fission-deploy': 'emc platform generate-deploy --project-dir=$(pwd) --is-fission --env-file=env.yaml',
+        'platform:generate-aws-deploy': 'emc platform generate-deploy --project-dir=$(pwd) --is-serverless-aws --aws-region=eu-central-1 --env-file=env.yml',
         'prettier': "prettier --write '**/*.js'",
         'test': "NODE_ENV=test yarn nyc mocha './functions/**/*test.js'",
         'postinstall': "echo '#!/bin/sh\\\\n\\\\nyarn function:sync-dependencies && yarn function:sync-version\\\\n\\\\nx=$?\\\\nexit $x\\\\n' > .git/hooks/pre-commit && chmod 0755 .git/hooks/pre-commit",
         'dev:start': "PUBSUB_EMULATOR_HOST='localhost:8085' PUBSUB_PROJECT_ID='my-project-id' GCLOUD_PROJECT='my-project-id' emc dev start --project-dir=$(pwd)",
         'dev:run-function': 'emc help dev run function --project-dir=$(pwd) --env-file=$(pwd)/env.json --test-data-file=$(pwd)/test-data.json',
         'dev:run-topic': 'emc help dev run topic --project-dir=$(pwd) --env-file=$(pwd)/env.json --test-data-file=$(pwd)/test-data.json',
-      },
-      dependencies: {
-        '@dasmeta/event-manager-platform-helper': '^1.0.1'
       },
       devDependencies: {
         '@google-cloud/storage': '^2.5.0',
@@ -143,7 +145,7 @@ specs
       },
     }
     await fse.writeJSON(getProjectChildPath('test-data.json'), testData, jsonWriteOptions)
-    await fse.writeFile(getProjectChildPath('env.yaml'), 'DEPLOYER_PLATFORM: "fission"\n')
+    await fse.writeFile(getProjectChildPath('env.yml'), 'DEPLOYER_PLATFORM: "fission"\n')
     const localEnv = {
       DEPLOYER_PLATFORM: 'fission'
     }
@@ -167,11 +169,11 @@ In case of manually editing make sure all cases are replaced.
 - \`functionsConfig.dir\` is the folder where functions will be generated for the current project.
 - \`functionsConfig.deploymentUid\` is the uid to be used by fission to identify resources.
 
-\`"dependencies"\` in \`package.josn\` is used to clone global project dependencies to new created functions and later sync in all functions.
+\`"dependencies"\` in \`package.json\` is used to clone global project dependencies to new created functions and later sync in all functions.
 
 ### Generated Files
 - \`env.json\` local environment json file
-- \`env.yaml\` multi environment yaml file used for deployment
+- \`env.yml\` multi environment yml file used for deployment
 - \`test-data.json\` contains test data for testing functions`
     await fse.writeFile(getProjectChildPath('README.md'), readme)
 
