@@ -14,6 +14,11 @@ import {
   getFissionNormFunctionName,
   getGcfFunctionDeploymentScript,
   getGcfState,
+  generateServerlessSpecForAws,
+  generateServerlessFunctionSpecForAws,
+  generateServerlessSNSTopicSpecForAws,
+  generateServerlessSNSTopicsServiceSpecForAws,
+  generateServerlessS3BucketServiceSpecForAws
 } from "../../utility/deploymentHelper";
 
 export default class GenerateDeploy extends Command {
@@ -26,10 +31,12 @@ export default class GenerateDeploy extends Command {
   static flags = {
     'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
-    'is-GCF': Flags.boolean({description: 'Use GCF instructions', required: false, exactlyOne: ['is-GCF', 'is-fission'], dependsOn: ['functions-list-file']}),
-    'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission'], dependsOn: ['kafka-bootstrap-server']}),
+    'is-GCF': Flags.boolean({description: 'Use GCF instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['functions-list-file']}),
+    'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['kafka-bootstrap-server']}),
+    'is-serverless-aws': Flags.boolean({description: 'Use serverless instructions for AWS', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['aws-region']}),
     'functions-list-file': Flags.string({description: 'GCF deployed functions list'}),
     'kafka-bootstrap-server': Flags.string({description: 'Kafka server for Fission MQT'}),
+    'aws-region': Flags.string({description: 'AWS region'}),
     'topic': Flags.string({description: 'Topics to deploy functions for', char: 't', multiple: true, default: []}),
     'subscription': Flags.string({description: 'Functions to deploy', char: 's', multiple: true, default: []}),
     'env-file': Flags.string({description: 'Deployment environment file', required: true}),
@@ -134,6 +141,63 @@ export default class GenerateDeploy extends Command {
       const deployScriptPath = path.join(absoluteBasePath, 'deploy.sh')
       fs.writeFileSync(deployScriptPath, `#!/bin/bash
 fission spec apply --wait --delete`)
+
+      this.log(chalk.green(`Generated deployment script in '${deployScriptPath}'`))
+    }
+
+    if(flags['is-serverless-aws']) {
+
+      const specDirBuckets = path.join(absoluteBasePath, 'specs', 'buckets');
+      await fse.ensureDir(specDirBuckets);
+      const specDirTopics = path.join(absoluteBasePath, 'specs', 'topics');
+      await fse.ensureDir(specDirTopics);
+
+      const topicNames: {[key: string]: boolean} = {};
+      const functionPackageInstallCommands: Array<string> = [];
+      const functions = getFilteredFunctions();
+
+      functions.forEach((item) => {
+        generateServerlessFunctionSpecForAws(
+          item, 
+          flags['aws-region'] as string,
+          path.join(absoluteBasePath, flags['env-file'])
+        )
+        functionPackageInstallCommands.push(`cd ${item.path} && yarn && cd $CURRENT_DIR`)
+        topicNames[item.topic] = true
+      })
+
+      Object.keys(topicNames).forEach((topic) => {
+        generateServerlessSNSTopicSpecForAws(
+          `${specDirTopics}/${topic}.yml`,
+          topic
+        )
+      })
+
+      generateServerlessS3BucketServiceSpecForAws(
+        path.join('specs', 'buckets'),
+        flags['aws-region'] as string,
+      )
+
+      generateServerlessSNSTopicsServiceSpecForAws(
+        path.join('specs', 'topics'),
+        flags['aws-region'] as string,
+        Object.keys(topicNames)
+      )
+
+      generateServerlessSpecForAws(
+        'serverless-compose.yml',
+        path.join('specs', 'topics'),
+        path.join('specs', 'buckets'),
+        functions,
+        
+      )
+
+      const deployScriptPath = path.join(absoluteBasePath, 'deploy.sh')
+      fs.writeFileSync(deployScriptPath, `#!/bin/bash
+CURRENT_DIR=$(pwd)
+yarn add -D @serverless/compose
+${functionPackageInstallCommands.join('\n')}
+serverless deploy`)
 
       this.log(chalk.green(`Generated deployment script in '${deployScriptPath}'`))
     }

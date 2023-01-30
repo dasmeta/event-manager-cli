@@ -1,7 +1,8 @@
-import { FissionContainerEnvironment, FissionEnvironmentVariable, FunctionItem, GcfFunctionList } from "../interfaces";
+import { FissionContainerEnvironment, FissionEnvironmentVariable, FunctionItem, FunctionList, GcfFunctionList } from "../interfaces";
 import * as fs from "fs"
 import * as moment from 'moment'
 import * as yaml from 'yaml'
+import {isEmpty, camelCase} from 'lodash'
 import {
   DEFAULT_ENV_NAME,
   DEFAULT_ENV_NAMESPACE,
@@ -250,4 +251,149 @@ spec:
 
 export const getFissionNormFunctionName = (fname:string) => {
   return fname.replace('_', '0')
+}
+
+export const generateServerlessSpecForAws = (
+  specFilePath:string,
+  topicsSpecFilePath:string,
+  bucketSpecFilePath:string,
+  functions: FunctionList
+) => {
+  const content = `services:
+  bucket:
+    path: ${bucketSpecFilePath}
+  topics:
+    path: ${topicsSpecFilePath}
+`
+  const spec = yaml.parse(content)
+
+  functions.forEach(item => {
+    spec.services[`function_${item.functionName}`] = {
+      path: item.path,
+      params: {
+        topicARN: '${topics.' + `${camelCase(item.topic)}TopicARN` + '}',
+        s3BucketName: '${bucket.s3SharedBucketName}'
+      }
+    }
+  })
+
+  const specContent = yaml.stringify(spec, {})
+  fs.writeFileSync(specFilePath, specContent)
+}
+
+export const generateServerlessFunctionSpecForAws = (
+  functionItem: FunctionItem,
+  awsRegion: string,
+  envFilePath: string
+) => {
+
+  const content = `service: emf-${camelCase(functionItem.functionName)}
+app: event-manager
+frameworkVersion: '3'
+provider:
+  name: aws
+  region: ${awsRegion}
+  profile: serverless
+  deploymentBucket:
+    name: $\{param:s3BucketName\}
+    serverSideEncryption: AES256
+functions:
+  ${functionItem.functionName}:
+    name: ${functionItem.functionName}
+    handler: run.subscribe
+    events:
+      - sns:
+          arn: '$\{param:topicARN\}'
+          topicName: ${camelCase(functionItem.topic)}
+    tags:
+      version: ${functionItem.version}
+    runtime: ${functionItem.runtime || 'nodejs14'}.x
+    memorySize: ${parseInt(functionItem.memory) || '128'}
+    timeout: 60
+    reservedConcurrency: ${functionItem["max-instances"] || '1'}
+`
+  const spec = yaml.parse(content)
+  const keyValue:Array<Array<string>> = Object.entries(
+    yaml.parse(fs.readFileSync(envFilePath, 'utf8'))
+  )
+
+  const variables: {[key: string]: any} = {};
+  for (const [key, value] of keyValue) {
+    variables[`${yaml.parse(key)}`] = yaml.parse(value);
+  }
+
+  if(!isEmpty(variables)) {
+    spec.provider.environment = variables;
+  }
+
+  const specContent = yaml.stringify(spec, {})
+  fs.writeFileSync(`${functionItem.path}/serverless.yml`, specContent)
+}
+
+export const generateServerlessSNSTopicSpecForAws = (
+  specFilePath:string,
+  topicName:string
+) => {
+  const topic = camelCase(topicName);
+  const content = `Resources:
+  ${topic}Topic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: ${topic}
+Outputs:
+  ${topic}TopicARN:
+    Value: !Ref ${topic}Topic
+`
+  fs.writeFileSync(specFilePath, content)
+}
+
+export const generateServerlessSNSTopicsServiceSpecForAws = (
+  specFilePath:string,
+  awsRegion:string,
+  topicNames:string[]
+) => {
+const content = `service: emSNSTopics
+app: event-manager
+frameworkVersion: '3'
+provider:
+  name: aws
+  region: ${awsRegion}
+  profile: serverless
+`
+  const spec = yaml.parse(content)
+
+  if(topicNames.length) {
+    spec.resources = [];
+  }
+
+  for(const topicName of topicNames) {
+    spec.resources.push('${file(./'+topicName+'.yml)}')
+  }
+
+  const specContent = yaml.stringify(spec, {})
+  fs.writeFileSync(`${specFilePath}/serverless.yml`, specContent)
+}
+
+export const generateServerlessS3BucketServiceSpecForAws = (
+  specFilePath:string,
+  awsRegion:string,
+) => {
+const content = `service: emS3Bucket
+app: event-manager
+frameworkVersion: '3'
+provider:
+  name: aws
+  region: ${awsRegion}
+  profile: serverless
+resources:
+  Resources:
+    s3SharedBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: em-deployment-bucket-test
+  Outputs:
+    s3SharedBucketName:
+      Value: !Ref s3SharedBucket
+`
+  fs.writeFileSync(`${specFilePath}/serverless.yml`, content)
 }
