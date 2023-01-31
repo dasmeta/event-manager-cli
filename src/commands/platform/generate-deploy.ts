@@ -38,6 +38,7 @@ export default class GenerateDeploy extends Command {
     'topic': Flags.string({description: 'Topics to deploy functions for', char: 't', multiple: true, default: []}),
     'subscription': Flags.string({description: 'Functions to deploy', char: 's', multiple: true, default: []}),
     'env-file': Flags.string({description: 'Deployment environment file', required: true}),
+    'event-manager-backend-host': Flags.string({description: 'Event manager backend host', required: true})
   }
 
   async run(): Promise<void> {
@@ -158,7 +159,7 @@ fission spec apply --wait --delete`)
       functions.forEach((item) => {
         generateServerlessFunctionSpecForAws(
           item, 
-          path.join('specs', 'functions'),
+          path.join('specs', 'functions')
         )
         functionPackageInstallCommands.push(`cd ${item.path} && yarn && yarn add @dasmeta/event-manager-platform-helper@1.1.0 && cd $CURRENT_DIR`)
         functionPackageRemoveCommands.push(`cd ${item.path} && yarn remove @dasmeta/event-manager-platform-helper && cd $CURRENT_DIR`)
@@ -179,6 +180,9 @@ fission spec apply --wait --delete`)
         Object.keys(topicNames),
         path.join('specs', 'functions'),
         functions,
+        {
+          'EVENT_MANAGER_BACKEND_HOST': flags['event-manager-backend-host']
+        }
       )
 
       const deployScriptPath = path.join(absoluteBasePath, 'deploy.sh')
