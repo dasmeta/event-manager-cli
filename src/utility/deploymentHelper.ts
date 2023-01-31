@@ -280,7 +280,7 @@ provider:
   }
 
   if(!isEmpty(variables)) {
-    spec.provider.environment = {...additionalEnvironment, variables};
+    spec.provider.environment = {...additionalEnvironment, ...variables};
   }
 
   if(!isEmpty(topics)) {
