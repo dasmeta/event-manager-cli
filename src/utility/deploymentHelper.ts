@@ -259,7 +259,8 @@ export const generateServerlessSpecForAws = (
   topicsSpecFilePath:string,
   topics:Array<string>,
   functionsSpecFilePath:string,
-  functions: FunctionList
+  functions: FunctionList,
+  additionalEnvironment: {[key: string]: string} = {}
 ) => {
   const content = `service: eventManager
 app: eventmanager
@@ -279,7 +280,7 @@ provider:
   }
 
   if(!isEmpty(variables)) {
-    spec.provider.environment = variables;
+    spec.provider.environment = {...additionalEnvironment, variables};
   }
 
   if(!isEmpty(topics)) {
@@ -303,7 +304,7 @@ provider:
 
 export const generateServerlessFunctionSpecForAws = (
   functionItem: FunctionItem,
-  specFilePath:string,
+  specFilePath:string
 ) => {
 
   const content = `em-${camelCase(functionItem.functionName)}:
