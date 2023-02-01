@@ -8,7 +8,7 @@
   },
   "bugs": "https://github.com/dasmeta/event-manager-cli/issues",
   "dependencies": {
-    "@dasmeta/event-manager-utils": "^0.1.4",
+    "@dasmeta/event-manager-utils": "^0.1.14",
     "@dasmeta/event-manager-node-api": "^2.2.3",
     "@oclif/core": "^1.2.1",
     "@oclif/plugin-autocomplete": "^1.2.0",
