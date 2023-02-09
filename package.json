@@ -88,7 +88,7 @@
   "repository": "https://github.com/dasmeta/event-manager-cli",
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
-    "build-watch": "shx rm -rf dist && tsc -b -w",
+    "dev": "shx rm -rf dist && tsc -b -w",
     "lint": "eslint . --ext .ts --config .eslintrc",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",

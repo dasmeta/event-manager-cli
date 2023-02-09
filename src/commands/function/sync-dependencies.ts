@@ -1,11 +1,9 @@
 import {Command, Flags} from '@oclif/core'
 import * as path from 'path'
-import * as chalk from 'chalk'
 import * as fse from 'fs-extra'
 import * as semver from 'semver'
 import {jsonWriteOptions} from '../../config'
 import {cloneDeep} from 'lodash'
-import {ProjectFunctionConfig} from '../../interfaces'
 import {getFunctions} from '../../utility/functionsHelper'
 import {getProjectPaths} from '../../utility/commandsHelper'
 
@@ -36,7 +34,10 @@ export default class SyncDependencies extends Command {
 
       const old = cloneDeep(packageData.dependencies)
       const newDependencies = Object.keys(old).reduce((newDep:any, key:string) => {
-        if (!dependencies[key] || semver.gt(old[key].slice(1), dependencies[key].slice(1))) {
+        const oldVersion = /^\d/.test(old[key]) ? old[key] : old[key].slice(1)
+        const newVersion = dependencies[key] ? (
+          /^\d/.test(dependencies[key]) ? dependencies[key] : dependencies[key].slice(1)) : undefined
+        if (!dependencies[key] || semver.gt(oldVersion, newVersion)) {
           return newDep
         }
 
