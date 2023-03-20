@@ -101,7 +101,9 @@ export default class GenerateDeploy extends Command {
       generateFissionDeploymentSpec(path.join(specDir, `deployment-${projectName}.yaml`), projectName, functionsConfig.uid)
       generateFissionEnvironmentSpec(
         path.join(specDir, 'env-nodejs-12.yaml'),
-        path.join(absoluteBasePath, flags['env-file'])
+        path.join(absoluteBasePath, flags['env-file']),
+        undefined,
+        flags['fission-namespace']
       )
 
       getFilteredFunctions().forEach((item) => {
@@ -133,7 +135,8 @@ export default class GenerateDeploy extends Command {
           item.topic,
           normFunctionName,
           normFunctionName,
-          bootstrapServers
+          bootstrapServers,
+          flags['fission-namespace']
         )
       });
 

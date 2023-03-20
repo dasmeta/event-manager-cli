@@ -1,7 +1,7 @@
 {
   "name": "@dasmeta/event-manager-cli",
   "description": "CLI for event manager components.",
-  "version": "1.3.6",
+  "version": "1.3.7",
   "author": "Gevorg Margaryan<gevorgmargaryan@yahoo.com> (https://www.dasmeta.com/)",
   "bin": {
     "emc": "./bin/run"
