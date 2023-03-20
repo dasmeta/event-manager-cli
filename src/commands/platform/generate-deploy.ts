@@ -30,11 +30,12 @@ export default class GenerateDeploy extends Command {
     'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
     'is-GCF': Flags.boolean({description: 'Use GCF instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['functions-list-file']}),
-    'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['kafka-bootstrap-server']}),
+    'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['kafka-bootstrap-server', 'fission-namespace']}),
     'functions-list-file': Flags.string({description: 'GCF deployed functions list'}),
     'is-serverless-aws': Flags.boolean({description: 'Use serverless instructions for AWS', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['aws-region']}),
     'kafka-bootstrap-server': Flags.string({description: 'Kafka server for Fission MQT'}),
     'aws-region': Flags.string({description: 'AWS region'}),
+    'fission-namespace': Flags.string({description: 'Fission deployment namespace', required: false}),
     'topic': Flags.string({description: 'Topics to deploy functions for', char: 't', multiple: true, default: []}),
     'subscription': Flags.string({description: 'Functions to deploy', char: 's', multiple: true, default: []}),
     'env-file': Flags.string({description: 'Deployment environment file', required: true}),
@@ -116,7 +117,7 @@ export default class GenerateDeploy extends Command {
         const packagePath = item.path;
         const version = item.version.replace(/[.]/gi, "-");
 
-        generateFissionPackageSpec(`${specDir}/package-${functionName}.yaml`, packagePath, normFunctionName);
+        generateFissionPackageSpec(`${specDir}/package-${functionName}.yaml`, packagePath, normFunctionName, flags['fission-namespace']);
 
         generateFissionFunctionSpec(
           path.join(specDir, `function-${functionName}.yaml`),
@@ -124,7 +125,8 @@ export default class GenerateDeploy extends Command {
           "run.subscribe",
           Number.parseInt(item.memory) || 128,
           60,
-          item["max-instances"] || 1
+          item["max-instances"] || 1,
+          flags['fission-namespace']
         );
         generateFissionMQTriggerSpec(
           path.join(specDir, `MQT-${functionName}.yaml`),
