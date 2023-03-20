@@ -350,6 +350,7 @@ FLAGS
   --is-serverless-aws               Use serverless aws instructions
   --kafka-bootstrap-server=<value>  Kafka server for Fission MQT
   --aws-region                      AWS region
+  --fission-namespace               Fission deployment namespace
   --event-manager-backend-host      Event manager backend host
   --project-dir=<value>             (required) Project root directory
   --project-name=<value>            Sub project directory
