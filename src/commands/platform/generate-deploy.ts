@@ -166,7 +166,7 @@ fission spec apply --wait --delete`)
           item, 
           path.join('specs', 'functions')
         )
-        functionPackageInstallCommands.push(`cd ${item.path} && yarn && yarn add @dasmeta/event-manager-platform-helper@1.3.0 && cd $CURRENT_DIR`)
+        functionPackageInstallCommands.push(`cd ${item.path} && yarn && yarn add @dasmeta/event-manager-platform-helper@1.3.1 && cd $CURRENT_DIR`)
         functionPackageRemoveCommands.push(`cd ${item.path} && yarn remove @dasmeta/event-manager-platform-helper && cd $CURRENT_DIR`)
         topicNames[item.topic] = true
       })
