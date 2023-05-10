@@ -192,7 +192,7 @@ spec:
       SpecializationTimeout: 120
       TargetCPUPercent: 0
     StrategyType: execution
-  concurrency: 500
+  concurrency: 1
   environment:
     name: ${envName}
     namespace: ${envNamespace}
@@ -233,8 +233,8 @@ spec:
     functionweights: null
     name: ${functionName}
     type: name
-  maxReplicaCount: 100
-  maxRetries: 3
+  maxReplicaCount: 1
+  maxRetries: 1
   messageQueueType: kafka
   metadata:
     bootstrapServers: ${bootstrapServers}
