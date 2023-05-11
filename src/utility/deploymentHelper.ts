@@ -186,11 +186,11 @@ metadata:
 spec:
   InvokeStrategy:
     ExecutionStrategy:
-      ExecutorType: poolmgr
+      ExecutorType: newdeploy
       MaxScale: ${maxInstances}
       MinScale: 0
       SpecializationTimeout: 120
-      TargetCPUPercent: 0
+      TargetCPUPercent: 80
     StrategyType: execution
   concurrency: 1
   environment:
