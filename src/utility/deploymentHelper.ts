@@ -234,7 +234,7 @@ spec:
     name: ${functionName}
     type: name
   maxReplicaCount: 1
-  maxRetries: 1
+  maxRetries: 0
   messageQueueType: kafka
   metadata:
     bootstrapServers: ${bootstrapServers}
