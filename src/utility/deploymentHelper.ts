@@ -240,7 +240,7 @@ spec:
     bootstrapServers: ${bootstrapServers}
     consumerGroup: ${triggerName}
     topic: ${topic}
-  minReplicaCount: 0
+  minReplicaCount: 1
   mqtkind: keda
   pollingInterval: 5
   respTopic: response-topic
