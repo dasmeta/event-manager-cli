@@ -188,7 +188,7 @@ spec:
     ExecutionStrategy:
       ExecutorType: newdeploy
       MaxScale: ${maxInstances}
-      MinScale: 0
+      MinScale: 1
       SpecializationTimeout: 120
       TargetCPUPercent: 80
     StrategyType: execution
