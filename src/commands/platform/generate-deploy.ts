@@ -51,8 +51,22 @@ export default class GenerateDeploy extends Command {
 
     const getFilteredFunctions = () => {
       let functions = getFunctions(absoluteFunctionsPath)
-      if (0 === flags.topic.length && 0 === flags.subscription.length) {
+
+      if(0 === flags.topic.length && 0 === flags.subscription.length &&
+         0 === flags['excluded-topic'].length && 0 === flags['excluded-subscription'].length) {
         return functions
+      }
+
+      if(0 !== flags['excluded-topic'].length) {
+        functions = functions.filter((item) => {
+          return item.topic && !flags['excluded-topic'].includes(item.topic);
+        })
+      }
+
+      if(0 !== flags['excluded-subscription'].length) {
+        functions = functions.filter((item) => {
+          return item.topic && !flags['excluded-subscription'].includes(item.topic);
+        })
       }
 
       if(0 !== flags.topic.length) {
