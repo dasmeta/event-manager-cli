@@ -15,7 +15,9 @@ export default class UpdateStats extends Command {
     'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
     'topic': Flags.string({description: 'Topics to deploy functions for', char: 't', multiple: true, default: []}),
+    'excluded-topic': Flags.string({char: 'T', description: 'Topics to exclude', multiple: true, default: []}),
     'subscription': Flags.string({description: 'Functions to deploy', char: 's', multiple: true, default: []}),
+    'excluded-subscription': Flags.string({char: 'S', description: 'Subscription to exclude', multiple: true, default: []}),
     'event-manager-backend-host': Flags.string({description: 'Event manager backend host', required: true}),
     'headers': Flags.string({description: 'Headers to send for update (JSON string)', required: false, default: "{}"})
   }
@@ -29,8 +31,22 @@ export default class UpdateStats extends Command {
 
     const getFilteredFunctions = () => {
       let functions = getFunctions(absoluteFunctionsPath)
-      if (0 === flags.topic.length && 0 === flags.subscription.length) {
+
+      if (0 === flags.topic.length && 0 === flags.subscription.length &&
+          0 === flags['excluded-topic'].length && 0 === flags['excluded-subscription'].length) {
         return functions
+      }
+
+      if(0 !== flags['excluded-topic'].length) {
+        functions = functions.filter((item) => {
+          return item.topic && !flags['excluded-topic'].includes(item.topic);
+        })
+      }
+
+      if(0 !== flags['excluded-subscription'].length) {
+        functions = functions.filter((item) => {
+          return item.topic && !flags['excluded-subscription'].includes(item.topic);
+        })
       }
 
       if(0 !== flags.topic.length) {
