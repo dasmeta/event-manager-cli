@@ -65,7 +65,7 @@ export default class GenerateDeploy extends Command {
 
       if(0 !== flags['excluded-subscription'].length) {
         functions = functions.filter((item) => {
-          return item.topic && !flags['excluded-subscription'].includes(item.topic);
+          return item.functionName && !flags['excluded-subscription'].includes(item.functionName);
         })
       }
 
