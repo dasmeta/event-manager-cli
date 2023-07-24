@@ -37,7 +37,9 @@ export default class GenerateDeploy extends Command {
     'aws-region': Flags.string({description: 'AWS region'}),
     'fission-namespace': Flags.string({description: 'Fission deployment namespace', required: false}),
     'topic': Flags.string({description: 'Topics to deploy functions for', char: 't', multiple: true, default: []}),
+    'excluded-topic': Flags.string({char: 'T', description: 'Topics to exclude', multiple: true, default: []}),
     'subscription': Flags.string({description: 'Functions to deploy', char: 's', multiple: true, default: []}),
+    'excluded-subscription': Flags.string({char: 'S', description: 'Subscription to exclude', multiple: true, default: []}),
     'env-file': Flags.string({description: 'Deployment environment file', required: true}),
     'event-manager-backend-host': Flags.string({description: 'Event manager backend host', required: true})
   }
