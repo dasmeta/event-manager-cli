@@ -1,5 +1,6 @@
 import { FissionContainerEnvironment, FissionEnvironmentVariable, FunctionItem, FunctionList, GcfFunctionList } from "../interfaces";
 import * as fs from "fs"
+import * as crypto  from 'crypto';
 import * as moment from 'moment'
 import * as yaml from 'yaml'
 import {isEmpty, camelCase} from 'lodash'
@@ -66,6 +67,17 @@ export const generateFissionPackageSpec = (
   envName:string = DEFAULT_ENV_NAME,
   envNamespace:string = DEFAULT_ENV_NAMESPACE
 ) => {
+
+  const handlerContent = fs.readFileSync(`${packagePath}/handler.js`, 'utf8');
+  const packageContent = fs.readFileSync(`${packagePath}/package.json`, 'utf8');
+
+  const combinedContent = handlerContent + packageContent;
+
+  const hash = crypto.createHash('sha256');
+  hash.update(combinedContent);
+
+  const checksum = hash.digest('hex');
+
   const specContent = `include:
   - ${packagePath}/*
 kind: ArchiveUploadSpec
@@ -85,7 +97,10 @@ spec:
     name: ${envName}
     namespace: ${envNamespace}
   source:
-    checksum: {}
+    checksum: {
+      type: sha256,
+      sum: ${checksum}
+    }
     type: url
     url: archive://${name}-XYZ
 status:
