@@ -92,7 +92,10 @@ metadata:
   namespace: ${functionNamespace}
 spec:
   deployment:
-    checksum: {}
+    checksum: {
+      type: sha256,
+      sum: ${checksum}
+    }
   environment:
     name: ${envName}
     namespace: ${envNamespace}
