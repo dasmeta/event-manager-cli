@@ -123,7 +123,6 @@ export default class GenerateDeploy extends Command {
       )
 
       const functionApplyCommands: Array<string> = [];
-      const functionPackageRemoveCommands: Array<string> = [];
 
       getFilteredFunctions().forEach((item) => {
         const excludedFunctions = [
@@ -169,22 +168,19 @@ rm specs/function-${functionName}.yaml
 rm specs/MQT-${functionName}.yaml
 rm specs/package-${functionName}.yaml
 ###`)
-        functionPackageRemoveCommands.push(`rm -rf ${item.path}/node_modules`)
       });
 
       this.log(chalk.green(`Generated specs in '${specDir}'`))
 
       const deployScriptPath = path.join(absoluteBasePath, 'deploy.sh')
       fs.writeFileSync(deployScriptPath, `#!/bin/bash
-cp specs/ specs-all/
+cp -r specs/ specs-all/
 rm specs/function-*
 rm specs/MQT-*
 rm specs/package-*
 ${functionApplyCommands.join('\n')}
-cp specs-all/ specs/
+cp -r specs-all/ specs/
 fission spec apply --wait --delete
-
-${functionPackageRemoveCommands.join('\n')}
 
 rm -rf specs
 rm -rf specs-all
