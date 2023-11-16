@@ -159,7 +159,6 @@ export default class GenerateDeploy extends Command {
 
         functionApplyCommands.push(`
 ### ${functionName}
-yarn --cwd ${item.path} install
 cp specs-all/function-${functionName}.yaml specs/function-${functionName}.yaml
 cp specs-all/MQT-${functionName}.yaml specs/MQT-${functionName}.yaml
 cp specs-all/package-${functionName}.yaml specs/package-${functionName}.yaml
