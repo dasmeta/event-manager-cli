@@ -122,6 +122,9 @@ export default class GenerateDeploy extends Command {
         flags['fission-namespace']
       )
 
+      const functionApplyCommands: Array<string> = [];
+      const functionPackageRemoveCommands: Array<string> = [];
+
       getFilteredFunctions().forEach((item) => {
         const excludedFunctions = [
           "vocabulary_handle-image-resize"
@@ -134,7 +137,7 @@ export default class GenerateDeploy extends Command {
         const normFunctionName = getFissionNormFunctionName(functionName);
         const packagePath = item.path;
         const version = item.version.replace(/[.]/gi, "-");
-
+        
         generateFissionPackageSpec(`${specDir}/package-${functionName}.yaml`, packagePath, normFunctionName, flags['fission-namespace']);
 
         generateFissionFunctionSpec(
@@ -154,13 +157,38 @@ export default class GenerateDeploy extends Command {
           bootstrapServers,
           flags['fission-namespace']
         )
+
+        functionApplyCommands.push(`
+### ${functionName}
+yarn --cwd ${item.path} install
+cp specs-all/function-${functionName}.yaml specs/function-${functionName}.yaml
+cp specs-all/MQT-${functionName}.yaml specs/MQT-${functionName}.yaml
+cp specs-all/package-${functionName}.yaml specs/package-${functionName}.yaml
+fission spec apply --wait
+rm specs/function-${functionName}.yaml
+rm specs/MQT-${functionName}.yaml
+rm specs/package-${functionName}.yaml
+###`)
+        functionPackageRemoveCommands.push(`rm -rf ${item.path}/node_modules`)
       });
 
       this.log(chalk.green(`Generated specs in '${specDir}'`))
 
       const deployScriptPath = path.join(absoluteBasePath, 'deploy.sh')
       fs.writeFileSync(deployScriptPath, `#!/bin/bash
-fission spec apply --wait --delete`)
+cp specs/ specs-all/
+rm specs/function-*
+rm specs/MQT-*
+rm specs/package-*
+${functionApplyCommands.join('\n')}
+cp specs-all/ specs/
+fission spec apply --wait --delete
+
+${functionPackageRemoveCommands.join('\n')}
+
+rm -rf specs
+rm -rf specs-all
+`)
 
       this.log(chalk.green(`Generated deployment script in '${deployScriptPath}'`))
     }
