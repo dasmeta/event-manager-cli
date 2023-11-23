@@ -173,6 +173,7 @@ rm specs/package-${functionName}.yaml
 
       const deployScriptPath = path.join(absoluteBasePath, 'deploy.sh')
       fs.writeFileSync(deployScriptPath, `#!/bin/bash
+mkdir specs-all
 cp -r specs/* specs-all/
 rm specs/function-*
 rm specs/MQT-*
@@ -181,7 +182,6 @@ ${functionApplyCommands.join('\n')}
 cp -r specs-all/* specs/
 fission spec apply --wait --delete
 
-rm -rf specs
 rm -rf specs-all
 `)
 
