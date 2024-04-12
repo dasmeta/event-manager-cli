@@ -38,7 +38,7 @@ export const getGcfFunctionDeploymentScript = (item: FunctionItem, envFile:strin
   content += `\n  --max-instances=${item["max-instances"] || "1"} \\`
   content += `\n  --runtime="${item.runtime || "nodejs12"}" \\`
   content += `\n  --source="${item.absolutePath}" \\`
-  content += `\n  --timeout=60 \\`
+  content += `\n  --timeout=${item.timeout || 60} \\`
 
   if (item.topic) {
     content += `\n  --trigger-topic="${item.topic}" \\`

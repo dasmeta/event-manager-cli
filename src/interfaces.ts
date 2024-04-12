@@ -28,7 +28,8 @@ export interface FunctionItem {
   'max-instances': number
   bucket: string
   event: string
-  resource: string
+  resource: string,
+  timeout: number,
 }
 
 export type FunctionList = Array<FunctionItem>
