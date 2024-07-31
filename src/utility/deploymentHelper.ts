@@ -12,6 +12,8 @@ import {
   DEFAULT_MQ_TRIGGER_NAMESPACE,
   DEFAULT_NODE_BUILDER_IMAGE,
   DEFAULT_NODE_ENV_IMAGE,
+  DEFAULT_RABBITMQ_HOST,
+  DEFAULT_RABBIT_MQ_SECRET
 } from "../config";
 
 export const getGcfState = (stateFilePath:string) => {
@@ -229,14 +231,13 @@ spec:
   fs.writeFileSync(specFilePath, content)
 }
 
-export const generateFissionMQTriggerSpec = (
-  specFilePath:string,
-  topic:string,
-  triggerName:string,
-  functionName:string,
-  bootstrapServers:string = DEFAULT_KAFKA_BOOTSTRAP_SERVER,
-  triggerNamespace:string = DEFAULT_MQ_TRIGGER_NAMESPACE
+const getDefaultFissionMQTTriggerSpec = (
+  triggerName: string,
+  triggerNamespace: string,
+  functionName: string,
+  topic: string
 ) => {
+
   const content = `apiVersion: fission.io/v1
 kind: MessageQueueTrigger
 metadata:
@@ -253,17 +254,61 @@ spec:
     type: name
   maxReplicaCount: 1
   maxRetries: 0
-  messageQueueType: kafka
-  metadata:
-    bootstrapServers: ${bootstrapServers}
-    consumerGroup: ${triggerName}
-    topic: ${topic}
   minReplicaCount: 1
   mqtkind: keda
   pollingInterval: 5
   respTopic: response-topic
   topic: ${topic}
 `
+
+  const spec = yaml.parse(content)
+
+  return spec
+}
+
+export const generateFissionMQTriggerSpecKafka = (
+  specFilePath:string,
+  topic:string,
+  triggerName:string,
+  functionName:string,
+  bootstrapServers:string = DEFAULT_KAFKA_BOOTSTRAP_SERVER,
+  triggerNamespace:string = DEFAULT_MQ_TRIGGER_NAMESPACE
+) => {
+
+  const config = getDefaultFissionMQTTriggerSpec(triggerName, triggerNamespace, functionName, topic);
+
+  config.spec['messageQueueType'] = 'kafka';
+  config.spec['metadata'] = {
+    bootstrapServers,
+    consumerGroup: triggerName,
+    topic
+  }
+
+  const content = yaml.stringify(config, {})
+
+  fs.writeFileSync(specFilePath, content)
+}
+
+export const generateFissionMQTriggerSpecRabbitMQ = (
+  specFilePath:string,
+  topic:string,
+  triggerName:string,
+  functionName:string,
+  rabbitMqSecret:string = DEFAULT_RABBIT_MQ_SECRET,
+  triggerNamespace:string = DEFAULT_MQ_TRIGGER_NAMESPACE
+) => {
+
+  const config = getDefaultFissionMQTTriggerSpec(triggerName, triggerNamespace, functionName, topic);
+
+  config.spec['messageQueueType'] = 'rabbitmq';
+  config.spec['secret'] = rabbitMqSecret;
+  config.spec['metadata'] = {
+    queueName: triggerName,
+    topic
+  }
+
+  const content = yaml.stringify(config, {})
+
   fs.writeFileSync(specFilePath, content)
 }
 
@@ -361,6 +406,22 @@ export const generateServerlessSNSTopicSpecForAws = (
     Type: AWS::SNS::Topic
     Properties:
       TopicName: ${topic}
+`
+  fs.writeFileSync(specFilePath, content)
+}
+
+export const generateRabbitMqSecret = (
+  specFilePath:string,
+  name: string =  DEFAULT_RABBIT_MQ_SECRET,
+  host: string = DEFAULT_RABBITMQ_HOST,
+  namespace: string = DEFAULT_MQ_TRIGGER_NAMESPACE,
+) => {
+  const content = `kind: Secret
+metadata:
+  name: ${name}
+  namespace: ${namespace}
+stringData:
+  host: ${host}
 `
   fs.writeFileSync(specFilePath, content)
 }

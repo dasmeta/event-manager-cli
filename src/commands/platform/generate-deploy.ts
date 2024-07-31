@@ -1,4 +1,4 @@
-import {Command, Flags} from '@oclif/core'
+import {Command, Flags, CliUx} from '@oclif/core'
 import * as chalk from 'chalk'
 import * as fs from "fs"
 import * as fse from "fs-extra"
@@ -9,7 +9,8 @@ import {
   generateFissionDeploymentSpec,
   generateFissionEnvironmentSpec,
   generateFissionFunctionSpec,
-  generateFissionMQTriggerSpec,
+  generateFissionMQTriggerSpecKafka,
+  generateFissionMQTriggerSpecRabbitMQ,
   generateFissionPackageSpec,
   getFissionNormFunctionName,
   getGcfFunctionDeploymentScript,
@@ -17,7 +18,11 @@ import {
   generateServerlessSpecForAws,
   generateServerlessFunctionSpecForAws,
   generateServerlessSNSTopicSpecForAws,
+  generateRabbitMqSecret
 } from "../../utility/deploymentHelper";
+import {
+  DEFAULT_RABBIT_MQ_SECRET
+} from "../../config";
 
 export default class GenerateDeploy extends Command {
   static description = 'Generates deployment files.'
@@ -30,10 +35,13 @@ export default class GenerateDeploy extends Command {
     'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
     'is-GCF': Flags.boolean({description: 'Use GCF instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['functions-list-file']}),
-    'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['kafka-bootstrap-server', 'fission-namespace']}),
+    'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['fission-namespace'], relationships: [{
+      type: 'some', flags: ['kafka-bootstrap-server', 'rabbitmq-host']
+    }]}),
     'functions-list-file': Flags.string({description: 'GCF deployed functions list'}),
     'is-serverless-aws': Flags.boolean({description: 'Use serverless instructions for AWS', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['aws-region']}),
-    'kafka-bootstrap-server': Flags.string({description: 'Kafka server for Fission MQT'}),
+    'kafka-bootstrap-server': Flags.string({description: 'Kafka server for Fission MQT', exclusive: ['rabbitmq-host']}),
+    'rabbitmq-host': Flags.string({description: 'Rabbit host for Fission MQT', exclusive: ['kafka-bootstrap-server']}),
     'aws-region': Flags.string({description: 'AWS region'}),
     'fission-namespace': Flags.string({description: 'Fission deployment namespace', required: false}),
     'topic': Flags.string({description: 'Topics to deploy functions for', char: 't', multiple: true, default: []}),
@@ -108,6 +116,30 @@ export default class GenerateDeploy extends Command {
 
     if (flags['is-fission']) {
       const bootstrapServers:string = flags['kafka-bootstrap-server']!
+      const rabbitMqHostConfig:string = flags['rabbitmq-host']!
+
+      let rabbitMqHost=`amqp://${rabbitMqHostConfig}/`;
+      let rabbitMqSecret = DEFAULT_RABBIT_MQ_SECRET;
+
+      if(rabbitMqHostConfig) {
+        const setupRedisSecret = await CliUx.ux.prompt('Would you like to create secret for rabbitmq? (y/n)', { default: 'n' });
+        if(setupRedisSecret === 'y') {
+          const secretName = await CliUx.ux.prompt('Secret name', { default: 'rabbitmq-secret' });
+          const username = await CliUx.ux.prompt('Rabbitmq username', { required: false });
+          const password = await CliUx.ux.prompt('Rabbitmq password', { required: false });
+  
+          if(!!username && !!password) {
+            rabbitMqHost=`amqp://${username}:${password}@${rabbitMqHostConfig}/`;
+          }
+
+          rabbitMqSecret = secretName;
+  
+          generateRabbitMqSecret(path.join(absoluteBasePath, `rabbitmq-secret.yaml`), secretName, rabbitMqHost, flags['fission-namespace'])
+  
+          this.log(chalk.green(`rabbitmq-secret.yaml file was generated`))
+          this.log(chalk.gray(`run "kubectl apply -f rabbitmq-secret.yaml" to apply the secret`))
+        }
+      }
 
       const specDir = path.join(absoluteBasePath, 'specs')
       await fse.ensureDir(specDir)
@@ -148,14 +180,28 @@ export default class GenerateDeploy extends Command {
           item["max-instances"] || 1,
           flags['fission-namespace']
         );
-        generateFissionMQTriggerSpec(
-          path.join(specDir, `MQT-${functionName}.yaml`),
-          item.topic,
-          normFunctionName,
-          normFunctionName,
-          bootstrapServers,
-          flags['fission-namespace']
-        )
+
+        if(bootstrapServers) {
+          generateFissionMQTriggerSpecKafka(
+            path.join(specDir, `MQT-${functionName}.yaml`),
+            item.topic,
+            normFunctionName,
+            normFunctionName,
+            bootstrapServers,
+            flags['fission-namespace']
+          )
+        }
+
+        if(rabbitMqHostConfig) {
+          generateFissionMQTriggerSpecRabbitMQ(
+            path.join(specDir, `MQT-${functionName}.yaml`),
+            item.topic,
+            normFunctionName,
+            normFunctionName,
+            rabbitMqSecret,
+            flags['fission-namespace']
+          )
+        }
 
         functionApplyCommands.push(`
 ### ${functionName}
