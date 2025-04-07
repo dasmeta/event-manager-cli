@@ -195,6 +195,7 @@ export const generateFissionFunctionSpec = (
   entryPoint:string,
   maxMemory:number = 128,
   timeout:number = 60,
+  minInstances:number = 1,
   maxInstances:number = 1,
   functionNamespace:string = DEFAULT_FUNCTION_NAMESPACE,
   envName:string = DEFAULT_ENV_NAME,
@@ -211,7 +212,7 @@ spec:
     ExecutionStrategy:
       ExecutorType: newdeploy
       MaxScale: ${maxInstances}
-      MinScale: 1
+      MinScale: ${minInstances}
       SpecializationTimeout: 120
       TargetCPUPercent: 80
     StrategyType: execution
