@@ -39,7 +39,7 @@ export default class UpdateStats extends Command {
 
       if(0 !== flags['excluded-topic'].length) {
         functions = functions.filter((item) => {
-          return item.topic && !flags['excluded-topic'].includes(item.topic);
+          return item.config.topic && !flags['excluded-topic'].includes(item.config.topic);
         })
       }
 
@@ -51,7 +51,7 @@ export default class UpdateStats extends Command {
 
       if(0 !== flags.topic.length) {
         functions = functions.filter((item) => {
-          return item.topic && flags.topic.includes(item.topic)
+          return item.config.topic && flags.topic.includes(item.config.topic)
         })
       }
 
@@ -73,15 +73,15 @@ export default class UpdateStats extends Command {
     let created = 0;
     
     for(const functionItem of list) {
-        if(!functionItem.topic) {
+        if(!functionItem.config.topic) {
           continue
         }
-        const found = data.find(item => item.topic === functionItem.topic && item.subscription === functionItem.functionName)
+        const found = data.find(item => item.topic === functionItem.config.topic && item.subscription === functionItem.functionName)
         if(found) {
-          this.log(chalk.gray(`topic: ${functionItem.topic}, subscription: ${functionItem.functionName} already exists`))
+          this.log(chalk.gray(`topic: ${functionItem.config.topic}, subscription: ${functionItem.functionName} already exists`))
         } else {
           await api.eventStatsPost({
-            topic: functionItem.topic,
+            topic: functionItem.config.topic,
             subscription: functionItem.functionName,
             error: 0,
             fail: 0,
@@ -93,7 +93,7 @@ export default class UpdateStats extends Command {
             total: 0
           });
           created++;
-          this.log(chalk.green(`topic: ${functionItem.topic}, subscription: ${functionItem.functionName} created`))
+          this.log(chalk.green(`topic: ${functionItem.config.topic}, subscription: ${functionItem.functionName} created`))
         }
         total++;
     }

@@ -1,4 +1,12 @@
-import { FissionContainerEnvironment, FissionEnvironmentVariable, FunctionItem, FunctionList, GcfFunctionList } from "../interfaces";
+import { 
+  FissionContainerEnvironment, 
+  FissionEnvironmentVariable, 
+  FunctionItem, 
+  FunctionList, 
+  GcfConfig, 
+  GcfFunctionList,
+  ServerlessConfig 
+} from "../interfaces";
 import * as fs from "fs"
 import * as crypto  from 'crypto';
 import * as moment from 'moment'
@@ -36,23 +44,23 @@ export const getGcfFunctionDeploymentScript = (item: FunctionItem, envFile:strin
   content += `\ngcloud beta functions deploy "${item.functionName}" \\`
   content += `\n  --region="europe-west1" \\`
   content += `\n  --entry-point="subscribe" \\`
-  content += `\n  --memory="${item.memory || "128MB"}" \\`
-  content += `\n  --max-instances=${item["max-instances"] || "1"} \\`
-  content += `\n  --runtime="${item.runtime || "nodejs12"}" \\`
+  content += `\n  --memory="${item.config.memory || "128MB"}" \\`
+  content += `\n  --max-instances=${item.config.maxInstances || "1"} \\`
+  content += `\n  --runtime="${item.config.runtime || "nodejs12"}" \\`
   content += `\n  --source="${item.absolutePath}" \\`
-  content += `\n  --timeout=${item.timeout || 60} \\`
+  content += `\n  --timeout=${item.config.timeout || 60} \\`
 
-  if (item.topic) {
-    content += `\n  --trigger-topic="${item.topic}" \\`
+  if (item.config.topic) {
+    content += `\n  --trigger-topic="${item.config.topic}" \\`
   }
-  if (item.bucket) {
-    content += `\n  --trigger-bucket="${item.bucket}" \\`
+  if (item.config.bucket) {
+    content += `\n  --trigger-bucket="${item.config.bucket}" \\`
   }
-  if (item.event) {
-    content += `\n  --trigger-event="${item.event}" \\`
+  if (item.config.event) {
+    content += `\n  --trigger-event="${item.config.event}" \\`
   }
-  if (item.resource) {
-    content += `\n  --trigger-resource="${item.resource}" \\`
+  if (item.config.resource) {
+    content += `\n  --trigger-resource="${item.config.resource}" \\`
   }
 
   content += `\n  --update-labels="type=event,version=${item.version}" \\`
@@ -93,11 +101,6 @@ metadata:
   name: ${name}
   namespace: ${functionNamespace}
 spec:
-  deployment:
-    checksum: {
-      type: sha256,
-      sum: ${checksum}
-    }
   environment:
     name: ${envName}
     namespace: ${envNamespace}
@@ -375,14 +378,14 @@ export const generateServerlessFunctionSpecForAws = (
   handler: ${functionItem.path}/run.subscribe
   events:
     - sns:
-        arn: !Ref em${camelCase(functionItem.topic)}
-        topicName: ${camelCase(functionItem.topic)}
+        arn: !Ref em${camelCase(functionItem.config.topic)}
+        topicName: ${camelCase(functionItem.config.topic)}
   tags:
     version: ${functionItem.version}
-  runtime: ${functionItem.runtime || 'nodejs14'}.x
-  memorySize: ${parseInt(functionItem.memory) || '128'}
+  runtime: ${functionItem.config.runtime || 'nodejs14'}.x
+  memorySize: ${parseInt(functionItem.config.memory) || '128'}
   timeout: 60
-  reservedConcurrency: ${functionItem["max-instances"] || '1'}
+  reservedConcurrency: ${functionItem.config.maxInstances || '1'}
   package:
     individually: true
     patterns:

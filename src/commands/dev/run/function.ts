@@ -30,7 +30,7 @@ export default class Topic extends Command {
     const testData = require(flags['test-data-file'])
 
     const functionItem = getFunction(absoluteFunctionsPath, flags['function-namespace'], flags['function-name'])
-    if (!functionItem.topic) {
+    if (!functionItem.config.topic) {
       this.error(chalk.red('Function config does not have "topic" attribute.'))
     }
 
@@ -40,6 +40,6 @@ export default class Topic extends Command {
       handlerIndex = handler.handler
     }
 
-    await handlerIndex(testData[functionItem.topic])
+    await handlerIndex(testData[functionItem.config.topic])
   }
 }

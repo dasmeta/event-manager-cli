@@ -28,7 +28,7 @@ export default class Topic extends Command {
     const testData = require(flags['test-data-file'])
 
     const calls = getFunctions(absoluteFunctionsPath).map(item => {
-      if (!item.topic || item.topic !== flags.topic) {
+      if (!item.config.topic || item.config.topic !== flags.topic) {
         return null
       }
 
@@ -38,7 +38,7 @@ export default class Topic extends Command {
         handlerIndex = handler.handler
       }
 
-      return handlerIndex(testData[item.topic])
+      return handlerIndex(testData[item.config.topic])
     })
     .filter(item => Boolean(item))
 
