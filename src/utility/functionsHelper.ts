@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import {FunctionItem, FunctionList} from '../interfaces'
+import {FissionConfig, FunctionItem, FunctionList, GcfConfig, ServerlessConfig} from '../interfaces'
 import * as path from 'path'
 
 export const getFunction = (functionsPath:string, namespace:string, name:string): FunctionItem => {
@@ -8,7 +8,11 @@ export const getFunction = (functionsPath:string, namespace:string, name:string)
   const packageData = require(path.join(functionPath, 'package'))
 
   return {
-    ...packageData.gcf,
+    config: {
+      ...packageData.gcf || {},
+      ...packageData.fission || {},
+      ...packageData.serverless || {},
+    },
     functionName: `${namespace}_${name}`,
     version: packageData.version,
     path: functionDir,

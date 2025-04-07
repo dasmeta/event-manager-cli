@@ -21,7 +21,8 @@ import {
   generateRabbitMqSecret
 } from "../../utility/deploymentHelper";
 import {
-  DEFAULT_RABBIT_MQ_SECRET
+  DEFAULT_RABBIT_MQ_SECRET,
+  DEFAULT_ENV_NAME
 } from "../../config";
 
 export default class GenerateDeploy extends Command {
@@ -35,7 +36,7 @@ export default class GenerateDeploy extends Command {
     'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
     'is-GCF': Flags.boolean({description: 'Use GCF instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['functions-list-file']}),
-    'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['fission-namespace'], relationships: [{
+    'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], relationships: [{
       type: 'some', flags: ['kafka-bootstrap-server', 'rabbitmq-host']
     }]}),
     'functions-list-file': Flags.string({description: 'GCF deployed functions list'}),
@@ -43,13 +44,15 @@ export default class GenerateDeploy extends Command {
     'kafka-bootstrap-server': Flags.string({description: 'Kafka server for Fission MQT', exclusive: ['rabbitmq-host']}),
     'rabbitmq-host': Flags.string({description: 'Rabbit host for Fission MQT', exclusive: ['kafka-bootstrap-server']}),
     'aws-region': Flags.string({description: 'AWS region'}),
-    'fission-namespace': Flags.string({description: 'Fission deployment namespace', required: false}),
     'topic': Flags.string({description: 'Topics to deploy functions for', char: 't', multiple: true, default: []}),
-    'excluded-topic': Flags.string({char: 'T', description: 'Topics to exclude', multiple: true, default: []}),
+    'excluded-topic': Flags.string({description: 'Topics to exclude', char: 'T', multiple: true, default: []}),
     'subscription': Flags.string({description: 'Functions to deploy', char: 's', multiple: true, default: []}),
-    'excluded-subscription': Flags.string({char: 'S', description: 'Subscription to exclude', multiple: true, default: []}),
-    'env-file': Flags.string({description: 'Deployment environment file', required: true}),
-    'event-manager-backend-host': Flags.string({description: 'Event manager backend host', required: true})
+    'excluded-subscription': Flags.string({description: 'Subscription to exclude', char: 'S', multiple: true, default: []}),
+    'env-file': Flags.string({description: 'Deployment environment file', char: 'e', required: true}),
+    'event-manager-backend-host': Flags.string({description: 'Event manager backend host', char: 'b', required: true}),
+    'fission-function-namespace': Flags.string({description: 'Fission function namespace', aliases: ['ffns'], required: false}),
+    'fission-mqtrigger-namespace': Flags.string({description: 'Fission mqtrigger namespace', aliases: ['fmns'], required: false}),
+    'fission-environment-namespace': Flags.string({description: 'Fission environment namespace', aliases: ['fens'], required: false}),
   }
 
   async run(): Promise<void> {
@@ -67,7 +70,7 @@ export default class GenerateDeploy extends Command {
 
       if(0 !== flags['excluded-topic'].length) {
         functions = functions.filter((item) => {
-          return item.topic && !flags['excluded-topic'].includes(item.topic);
+          return item.config.topic && !flags['excluded-topic'].includes(item.config.topic);
         })
       }
 
@@ -79,7 +82,7 @@ export default class GenerateDeploy extends Command {
 
       if(0 !== flags.topic.length) {
         functions = functions.filter((item) => {
-          return item.topic && flags.topic.includes(item.topic)
+          return item.config.topic && flags.topic.includes(item.config.topic)
         })
       }
 
@@ -134,7 +137,7 @@ export default class GenerateDeploy extends Command {
 
           rabbitMqSecret = secretName;
   
-          generateRabbitMqSecret(path.join(absoluteBasePath, `rabbitmq-secret.yaml`), secretName, rabbitMqHost, flags['fission-namespace'])
+          generateRabbitMqSecret(path.join(absoluteBasePath, `rabbitmq-secret.yaml`), secretName, rabbitMqHost, flags['fission-mqtrigger-namespace'])
   
           this.log(chalk.green(`rabbitmq-secret.yaml file was generated`))
           this.log(chalk.gray(`run "kubectl apply -f rabbitmq-secret.yaml" to apply the secret`))
@@ -146,13 +149,29 @@ export default class GenerateDeploy extends Command {
 
       const projectName:string = absoluteBasePath.split('/').pop()!
 
+      // get unique environments
+      const uniqueEnvironments: Record<string, any> = {};
+      getFilteredFunctions().forEach(item => {
+        if(!uniqueEnvironments[item.config.env || DEFAULT_ENV_NAME]) {
+          uniqueEnvironments[item.config.env || DEFAULT_ENV_NAME] = {
+            'build': item.config.buildImg,
+            'runtime': item.config.runtimeImg
+          }
+        }
+      })
+
       generateFissionDeploymentSpec(path.join(specDir, `deployment-${projectName}.yaml`), projectName, functionsConfig.uid)
-      generateFissionEnvironmentSpec(
-        path.join(specDir, 'env-nodejs-12.yaml'),
-        path.join(absoluteBasePath, flags['env-file']),
-        undefined,
-        flags['fission-namespace']
-      )
+
+      Object.keys(uniqueEnvironments).forEach((env) => {
+        generateFissionEnvironmentSpec(
+          path.join(specDir, `env-${env}.yaml`),
+          path.join(absoluteBasePath, flags['env-file']),
+          env,
+          flags['fission-environment-namespace'],
+          uniqueEnvironments[env]['runtime'],
+          uniqueEnvironments[env]['build'],
+        )
+      })
 
       const functionApplyCommands: Array<string> = [];
 
@@ -169,37 +188,46 @@ export default class GenerateDeploy extends Command {
         const packagePath = item.path;
         const version = item.version.replace(/[.]/gi, "-");
         
-        generateFissionPackageSpec(`${specDir}/package-${functionName}.yaml`, packagePath, normFunctionName, flags['fission-namespace']);
+        generateFissionPackageSpec(
+          `${specDir}/package-${functionName}.yaml`, 
+          packagePath, 
+          normFunctionName, 
+          flags['fission-function-namespace'],
+          item.config.env,
+          flags['fission-environment-namespace']
+        );
 
         generateFissionFunctionSpec(
           path.join(specDir, `function-${functionName}.yaml`),
           normFunctionName,
           "run.subscribe",
-          Number.parseInt(item.memory) || 128,
+          Number.parseInt(item.config.memory) || 128,
           60,
-          item["max-instances"] || 1,
-          flags['fission-namespace']
+          item.config.maxInstances || 1,
+          flags['fission-function-namespace'],
+          item.config.env,
+          flags['fission-environment-namespace']
         );
 
         if(bootstrapServers) {
           generateFissionMQTriggerSpecKafka(
             path.join(specDir, `MQT-${functionName}.yaml`),
-            item.topic,
+            item.config.topic,
             normFunctionName,
             normFunctionName,
             bootstrapServers,
-            flags['fission-namespace']
+            flags['fission-mqtrigger-namespace']
           )
         }
 
         if(rabbitMqHostConfig) {
           generateFissionMQTriggerSpecRabbitMQ(
             path.join(specDir, `MQT-${functionName}.yaml`),
-            item.topic,
+            item.config.topic,
             normFunctionName,
             normFunctionName,
             rabbitMqSecret,
-            flags['fission-namespace']
+            flags['fission-mqtrigger-namespace']
           )
         }
 
@@ -253,7 +281,7 @@ rm -rf specs-all
         )
         functionPackageInstallCommands.push(`cd ${item.path} && yarn && yarn add @dasmeta/event-manager-platform-helper@1.3.1 && cd $CURRENT_DIR`)
         functionPackageRemoveCommands.push(`cd ${item.path} && yarn remove @dasmeta/event-manager-platform-helper && cd $CURRENT_DIR`)
-        topicNames[item.topic] = true
+        topicNames[item.config.topic] = true
       })
 
       Object.keys(topicNames).forEach((topic) => {

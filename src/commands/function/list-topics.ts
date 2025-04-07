@@ -23,7 +23,7 @@ export default class ListTopics extends Command {
 
     const topics = new Set()
     getFunctions(absoluteFunctionsPath).forEach(item => {
-      item.topic && topics.add(item.topic)
+      item.config.topic && topics.add(item.config.topic)
     })
 
     this.log(chalk.green('Topics:'))

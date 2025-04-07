@@ -37,9 +37,9 @@ export default class Start extends Command {
       const handler = require(path.join(item.absolutePath, 'handler'))
 
       if (
-        !item.topic ||
-        (flags.topic.length > 0 && !flags.topic.includes(item.topic)) ||
-        flags['excluded-topic'].includes(item.topic) ||
+        !item.config.topic ||
+        (flags.topic.length > 0 && !flags.topic.includes(item.config.topic)) ||
+        flags['excluded-topic'].includes(item.config.topic) ||
         (flags.subscription.length > 0 && !flags.subscription.includes(item.functionName)) ||
         flags['excluded-subscription'].includes(item.functionName)
       ) {
@@ -54,10 +54,10 @@ export default class Start extends Command {
       const api = new EventSubscriptionApi({ basePath: process.env.EVENT_MANAGER_BACKEND_URL })
 
       queue.registerSubscriber(
-        item.topic,
+        item.config.topic,
         item.functionName,
         handlerIndex,
-        item.maxAttempts || flags['default-max-attempt'],
+        item.config.maxAttempts || flags['default-max-attempt'],
         async (data: any) => api.eventSubscriptionsRecordStartPost(data), 
         async (data: any) => api.eventSubscriptionsRecordSuccessPost(data), 
         async (data: any) => api.eventSubscriptionsRecordFailurePost({...data, error: { stack: data.error.stack, message: data.error.message }}), 

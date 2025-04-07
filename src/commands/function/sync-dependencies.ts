@@ -25,7 +25,7 @@ export default class SyncDependencies extends Command {
     const {absoluteFunctionsPath, dependencies} = getProjectPaths(flags['project-dir'], flags['project-name'])
 
     for (const item of getFunctions(absoluteFunctionsPath)) {
-      if (!item.topic) {
+      if (!item.config.topic) {
         continue
       }
 
