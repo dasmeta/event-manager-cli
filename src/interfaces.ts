@@ -1,5 +1,6 @@
 interface Config {
   topic: string
+  minInstances: number
   maxInstances: number
   memory: string
   timeout: number

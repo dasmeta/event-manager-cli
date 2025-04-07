@@ -203,6 +203,7 @@ export default class GenerateDeploy extends Command {
           "run.subscribe",
           Number.parseInt(item.config.memory) || 128,
           60,
+          item.config.minInstances || 1,
           item.config.maxInstances || 1,
           flags['fission-function-namespace'],
           item.config.env,
