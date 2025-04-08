@@ -307,7 +307,7 @@ export const generateFissionMQTriggerSpecRabbitMQ = (
   config.spec['messageQueueType'] = 'rabbitmq';
   config.spec['secret'] = rabbitMqSecret;
   config.spec['metadata'] = {
-    queueName: triggerName,
+    queueName: topic,
     topic
   }
 
