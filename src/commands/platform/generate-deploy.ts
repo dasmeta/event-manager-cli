@@ -18,7 +18,9 @@ import {
   generateServerlessSpecForAws,
   generateServerlessFunctionSpecForAws,
   generateServerlessSNSTopicSpecForAws,
-  generateRabbitMqSecret
+  generateRabbitMqSecret,
+  generateRabbitInitScript,
+  generateRabbitMQBindingCommands
 } from "../../utility/deploymentHelper";
 import {
   DEFAULT_RABBIT_MQ_SECRET,
@@ -141,6 +143,33 @@ export default class GenerateDeploy extends Command {
   
           this.log(chalk.green(`rabbitmq-secret.yaml file was generated`))
           this.log(chalk.gray(`run "kubectl apply -f rabbitmq-secret.yaml" to apply the secret`))
+        }
+
+        const setupRedisInitScript= await CliUx.ux.prompt('Would you like to create initialization script for rabbitmq? (y/n)', { default: 'n' });
+        if(setupRedisInitScript === 'y') {
+          const host = await CliUx.ux.prompt('Rabbitmq public host', { default: 'http://localhost' });
+          const port = await CliUx.ux.prompt('Rabbitmq management port', { default: '15672' });
+          const username = await CliUx.ux.prompt('Rabbitmq username', { required: false });
+          const password = await CliUx.ux.prompt('Rabbitmq password', { required: false });
+
+          const commands: Array<string> = [];
+
+          getFilteredFunctions().forEach((item) => {
+            const functionName = item.functionName;
+            const normFunctionName = getFissionNormFunctionName(functionName);
+        
+            const commandList = generateRabbitMQBindingCommands(
+              item.config.topic,
+              normFunctionName,
+            );
+
+            commands.push(...commandList);
+          });
+
+          generateRabbitInitScript(path.join(absoluteBasePath, `rabbitmq-init.sh`), host, port, username, password, commands);
+  
+          this.log(chalk.green(`rabbitmq-init.sh file was generated`))
+          this.log(chalk.gray(`run "./rabbitmq-init.sh" to create necessary exchanges and queues`));
         }
       }
 
