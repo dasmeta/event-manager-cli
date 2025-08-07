@@ -306,9 +306,10 @@ export const generateFissionMQTriggerSpecRabbitMQ = (
 
   config.spec['messageQueueType'] = 'rabbitmq';
   config.spec['secret'] = rabbitMqSecret;
+  config.spec['topic'] = topic;
   config.spec['metadata'] = {
-    queueName: topic,
-    topic
+    queueName: triggerName,
+    topic: triggerName
   }
 
   const content = yaml.stringify(config, {})
@@ -428,4 +429,49 @@ stringData:
   host: ${host}
 `
   fs.writeFileSync(specFilePath, content)
+}
+
+export const generateRabbitInitScript = (
+  specFilePath:string,
+  host: string,
+  port: string,
+  username: string,
+  password: string,
+  commands: Array<string>
+) => {
+
+  const commandsScript: Array<string> = [];
+  commands.forEach(script => {
+    commandsScript.push(`/tmp/rabbitmqadmin ${script}`);
+  });
+
+  let authString = '';
+
+  if(username && password) {
+    authString = `--username=${username} --password=${password}`;
+  }
+
+  
+
+  const content = `
+curl ${host}:${port}/cli/rabbitmqadmin -o /tmp/rabbitmqadmin
+chmod +x /tmp/rabbitmqadmin
+${commandsScript.map(command => `${command} ${authString}`).join(`\n`)}
+`
+
+  fs.writeFileSync(specFilePath, content)
+}
+
+export const generateRabbitMQBindingCommands = (
+  topicName:string,
+  functionName:string,
+) => {
+
+  const commands = [];
+
+  commands.push(`declare exchange name=${topicName} type=fanout durable=true`);
+  commands.push(`declare queue name=${functionName} durable=true`);
+  commands.push(`declare binding source=${topicName} destination=${functionName}`);
+
+  return commands;
 }
