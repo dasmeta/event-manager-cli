@@ -141,7 +141,8 @@ export const generateFissionEnvironmentSpec = (
   envName:string = DEFAULT_ENV_NAME,
   envNamespace:string = DEFAULT_ENV_NAMESPACE,
   envImage:string = DEFAULT_NODE_ENV_IMAGE,
-  builderImage:string = DEFAULT_NODE_BUILDER_IMAGE
+  builderImage:string = DEFAULT_NODE_BUILDER_IMAGE,
+  nodes:Array<string> = []
 ) => {
   const content = `apiVersion: fission.io/v1
 kind: Environment
@@ -184,6 +185,51 @@ spec:
     })
   }
   spec.spec.runtime.podspec.containers = [nodeContainer];
+
+  if(nodes.length > 0) {
+    spec.spec.runtime.podspec.affinity = {
+      "nodeAffinity": {
+        "requiredDuringSchedulingIgnoredDuringExecution": {
+          "nodeSelectorTerms": [
+            {
+              "matchExpressions": [
+                {
+                  "key": "kubernetes.io/hostname",
+                  "operator": "In",
+                  "values": [...nodes]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+
+    spec.spec.builder.podspec = {
+      "affinity": {
+        "nodeAffinity": {
+          "requiredDuringSchedulingIgnoredDuringExecution": {
+            "nodeSelectorTerms": [
+              {
+                "matchExpressions": [
+                  {
+                    "key": "kubernetes.io/hostname",
+                    "operator": "In",
+                    "values": [...nodes]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "containers": [
+        {
+          "name": "builder"
+        }
+      ]
+    }
+  }
 
   const specContent = yaml.stringify(spec, {})
   fs.writeFileSync(specFilePath, specContent)
