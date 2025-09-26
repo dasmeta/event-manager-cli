@@ -55,6 +55,7 @@ export default class GenerateDeploy extends Command {
     'fission-function-namespace': Flags.string({description: 'Fission function namespace', aliases: ['ffns'], required: false}),
     'fission-mqtrigger-namespace': Flags.string({description: 'Fission mqtrigger namespace', aliases: ['fmns'], required: false}),
     'fission-environment-namespace': Flags.string({description: 'Fission environment namespace', aliases: ['fens'], required: false}),
+    'fission-function-nodes': Flags.string({description: 'Fission function nodes', aliases: ['ffn'], required: false, multiple: true, default: []}),
   }
 
   async run(): Promise<void> {
@@ -199,6 +200,7 @@ export default class GenerateDeploy extends Command {
           flags['fission-environment-namespace'],
           uniqueEnvironments[env]['runtime'],
           uniqueEnvironments[env]['build'],
+          flags['fission-function-nodes'],
         )
       })
 
