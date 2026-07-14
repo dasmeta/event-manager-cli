@@ -23,5 +23,3 @@ jobs:
           package-manager-cache: false
       - run: yarn install --frozen-lockfile
       - run: yarn publish --access=public
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
