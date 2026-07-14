@@ -75,7 +75,8 @@ export const generateFissionPackageSpec = (
   name:string,
   functionNamespace:string = DEFAULT_FUNCTION_NAMESPACE,
   envName:string = DEFAULT_ENV_NAME,
-  envNamespace:string = DEFAULT_ENV_NAMESPACE
+  envNamespace:string = DEFAULT_ENV_NAMESPACE,
+  include: string[] = []
 ) => {
 
   const handlerContent = fs.readFileSync(`${packagePath}/handler.js`, 'utf8');
@@ -88,8 +89,12 @@ export const generateFissionPackageSpec = (
 
   const checksum = hash.digest('hex');
 
+  const includeEntries = [`${packagePath}/*`, ...include]
+    .map((entry) => `  - ${entry}`)
+    .join('\n')
+
   const specContent = `include:
-  - ${packagePath}/*
+${includeEntries}
 kind: ArchiveUploadSpec
 name: ${name}-XYZ
 
@@ -359,6 +364,29 @@ export const generateFissionMQTriggerSpecRabbitMQ = (
   }
 
   const content = yaml.stringify(config, {})
+
+  fs.writeFileSync(specFilePath, content)
+}
+
+export const generateFissionTimeTriggerSpec = (
+  specFilePath: string,
+  cron: string,
+  triggerName: string,
+  functionName: string,
+  triggerNamespace: string = DEFAULT_MQ_TRIGGER_NAMESPACE
+) => {
+  const content = `apiVersion: fission.io/v1
+kind: TimeTrigger
+metadata:
+  creationTimestamp: null
+  name: ${triggerName}
+  namespace: ${triggerNamespace}
+spec:
+  cron: "${cron}"
+  functionref:
+    name: ${functionName}
+    type: name
+`
 
   fs.writeFileSync(specFilePath, content)
 }
