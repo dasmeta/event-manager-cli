@@ -3,10 +3,6 @@
 
 name: Node.js Package
 
-permissions:
-  id-token: write  # Required for OIDC
-  contents: read
-
 on:
   release:
     types: [created]
@@ -15,11 +11,13 @@ jobs:
   publish-npm:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
-          node-version: '24'
+          node-version: 18
           registry-url: https://registry.npmjs.org/
           package-manager-cache: false
       - run: yarn install --frozen-lockfile
       - run: yarn publish --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
