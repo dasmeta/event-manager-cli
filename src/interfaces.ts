@@ -1,5 +1,5 @@
 interface Config {
-  topic: string
+  topic?: string
   minInstances: number
   maxInstances: number
   memory: string
@@ -18,6 +18,8 @@ export interface FissionConfig extends Config {
   env?: string
   buildImg?: string
   runtimeImg?: string
+  schedule?: string
+  include?: string[]
 }
 
 export interface ServerlessConfig extends Config {

@@ -11,6 +11,7 @@ import {
   generateFissionFunctionSpec,
   generateFissionMQTriggerSpecKafka,
   generateFissionMQTriggerSpecRabbitMQ,
+  generateFissionTimeTriggerSpec,
   generateFissionPackageSpec,
   getFissionNormFunctionName,
   getGcfFunctionDeploymentScript,
@@ -38,9 +39,7 @@ export default class GenerateDeploy extends Command {
     'project-dir': Flags.string({description: 'Project root directory', required: true}),
     'project-name': Flags.string({description: 'Sub project directory', required: false, default: ''}),
     'is-GCF': Flags.boolean({description: 'Use GCF instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['functions-list-file']}),
-    'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], relationships: [{
-      type: 'some', flags: ['kafka-bootstrap-server', 'rabbitmq-host']
-    }]}),
+    'is-fission': Flags.boolean({description: 'Use fission instructions', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws']}),
     'functions-list-file': Flags.string({description: 'GCF deployed functions list'}),
     'is-serverless-aws': Flags.boolean({description: 'Use serverless instructions for AWS', required: false, exactlyOne: ['is-GCF', 'is-fission', 'is-serverless-aws'], dependsOn: ['aws-region']}),
     'kafka-bootstrap-server': Flags.string({description: 'Kafka server for Fission MQT', exclusive: ['rabbitmq-host']}),
@@ -124,6 +123,13 @@ export default class GenerateDeploy extends Command {
       const bootstrapServers:string = flags['kafka-bootstrap-server']!
       const rabbitMqHostConfig:string = flags['rabbitmq-host']!
 
+      const filteredFunctions = getFilteredFunctions()
+      const hasTopicFunctions = filteredFunctions.some((item) => !!item.config.topic)
+
+      if (hasTopicFunctions && !bootstrapServers && !rabbitMqHostConfig) {
+        this.error('Functions with topic require --kafka-bootstrap-server or --rabbitmq-host')
+      }
+
       let rabbitMqHost=`amqp://${rabbitMqHostConfig}/`;
       let rabbitMqSecret = DEFAULT_RABBIT_MQ_SECRET;
 
@@ -155,7 +161,11 @@ export default class GenerateDeploy extends Command {
 
           const commands: Array<string> = [];
 
-          getFilteredFunctions().forEach((item) => {
+          filteredFunctions.forEach((item) => {
+            if (!item.config.topic) {
+              return;
+            }
+
             const functionName = item.functionName;
             const normFunctionName = getFissionNormFunctionName(functionName);
         
@@ -181,7 +191,7 @@ export default class GenerateDeploy extends Command {
 
       // get unique environments
       const uniqueEnvironments: Record<string, any> = {};
-      getFilteredFunctions().forEach(item => {
+      filteredFunctions.forEach(item => {
         if(!uniqueEnvironments[item.config.env || DEFAULT_ENV_NAME]) {
           uniqueEnvironments[item.config.env || DEFAULT_ENV_NAME] = {
             'build': item.config.buildImg,
@@ -206,7 +216,7 @@ export default class GenerateDeploy extends Command {
 
       const functionApplyCommands: Array<string> = [];
 
-      getFilteredFunctions().forEach((item) => {
+      filteredFunctions.forEach((item) => {
         const excludedFunctions = [
           "vocabulary_handle-image-resize"
         ];
@@ -217,7 +227,8 @@ export default class GenerateDeploy extends Command {
         const functionName = item.functionName;
         const normFunctionName = getFissionNormFunctionName(functionName);
         const packagePath = item.path;
-        const version = item.version.replace(/[.]/gi, "-");
+        const hasTopic = !!item.config.topic;
+        const hasSchedule = !!item.config.schedule;
         
         generateFissionPackageSpec(
           `${specDir}/package-${functionName}.yaml`, 
@@ -225,7 +236,8 @@ export default class GenerateDeploy extends Command {
           normFunctionName, 
           flags['fission-function-namespace'],
           item.config.env,
-          flags['fission-environment-namespace']
+          flags['fission-environment-namespace'],
+          item.config.include || []
         );
 
         generateFissionFunctionSpec(
@@ -241,10 +253,10 @@ export default class GenerateDeploy extends Command {
           flags['fission-environment-namespace']
         );
 
-        if(bootstrapServers) {
+        if (hasTopic && bootstrapServers) {
           generateFissionMQTriggerSpecKafka(
             path.join(specDir, `MQT-${functionName}.yaml`),
-            item.config.topic,
+            item.config.topic!,
             normFunctionName,
             normFunctionName,
             bootstrapServers,
@@ -252,10 +264,10 @@ export default class GenerateDeploy extends Command {
           )
         }
 
-        if(rabbitMqHostConfig) {
+        if (hasTopic && rabbitMqHostConfig) {
           generateFissionMQTriggerSpecRabbitMQ(
             path.join(specDir, `MQT-${functionName}.yaml`),
-            item.config.topic,
+            item.config.topic!,
             normFunctionName,
             normFunctionName,
             rabbitMqSecret,
@@ -263,14 +275,37 @@ export default class GenerateDeploy extends Command {
           )
         }
 
+        if (hasSchedule) {
+          generateFissionTimeTriggerSpec(
+            path.join(specDir, `TT-${functionName}.yaml`),
+            item.config.schedule!,
+            normFunctionName,
+            normFunctionName,
+            flags['fission-mqtrigger-namespace']
+          )
+        }
+
+        const triggerCopyCommands: string[] = []
+        const triggerRmCommands: string[] = []
+
+        if (hasTopic && (bootstrapServers || rabbitMqHostConfig)) {
+          triggerCopyCommands.push(`cp specs-all/MQT-${functionName}.yaml specs/MQT-${functionName}.yaml`)
+          triggerRmCommands.push(`rm specs/MQT-${functionName}.yaml`)
+        }
+
+        if (hasSchedule) {
+          triggerCopyCommands.push(`cp specs-all/TT-${functionName}.yaml specs/TT-${functionName}.yaml`)
+          triggerRmCommands.push(`rm specs/TT-${functionName}.yaml`)
+        }
+
         functionApplyCommands.push(`
 ### ${functionName}
 cp specs-all/function-${functionName}.yaml specs/function-${functionName}.yaml
-cp specs-all/MQT-${functionName}.yaml specs/MQT-${functionName}.yaml
+${triggerCopyCommands.join('\n')}
 cp specs-all/package-${functionName}.yaml specs/package-${functionName}.yaml
 fission spec apply --wait
 rm specs/function-${functionName}.yaml
-rm specs/MQT-${functionName}.yaml
+${triggerRmCommands.join('\n')}
 rm specs/package-${functionName}.yaml
 ###`)
       });
@@ -283,6 +318,7 @@ mkdir specs-all
 cp -r specs/* specs-all/
 rm specs/function-*
 rm specs/MQT-*
+rm specs/TT-*
 rm specs/package-*
 ${functionApplyCommands.join('\n')}
 cp -r specs-all/* specs/
@@ -313,7 +349,9 @@ rm -rf specs-all
         )
         functionPackageInstallCommands.push(`cd ${item.path} && yarn && yarn add @dasmeta/event-manager-platform-helper@1.3.1 && cd $CURRENT_DIR`)
         functionPackageRemoveCommands.push(`cd ${item.path} && yarn remove @dasmeta/event-manager-platform-helper && cd $CURRENT_DIR`)
-        topicNames[item.config.topic] = true
+        if (item.config.topic) {
+          topicNames[item.config.topic] = true
+        }
       })
 
       Object.keys(topicNames).forEach((topic) => {
