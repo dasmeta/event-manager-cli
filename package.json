@@ -86,7 +86,14 @@
       }
     }
   },
-  "repository": "https://github.com/dasmeta/event-manager-cli",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dasmeta/event-manager-cli.git"
+  },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
     "dev": "shx rm -rf dist && tsc -b -w",
